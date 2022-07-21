@@ -3,12 +3,12 @@
 using namespace MiraiCP;
 
 const PluginConfig CPPPlugin::config{
-        "Plugin id",          // 插件id
-        "Plugin name",        // 插件名称
-        "Version",            // 插件版本
-        "Author name",        // 插件作者
-        "Plugin description"  // 可选：插件描述
-        "Publish time"        // 可选：日期
+        "OtakuLuo.Mirai.Plugin.Otaku",          // 插件id
+        "Otaku_Mirai",        // 插件名称
+        "v0.0.1",            // 插件版本
+        "OtakuLuo",        // 插件作者
+        "Just a plugin for the mirai framework."  // 可选：插件描述
+        ""
 };
 
 // 插件实例
@@ -21,6 +21,12 @@ public:
   // 入口函数
   void onEnable() override {
     // 请在此处监听
+      Logger::logger.info("OtakuMiraiPlugin loaded message from plugin.");
+      Event::registerEvent<GroupMessageEvent>(
+          [](GroupMessageEvent Event) 
+          {
+              Logger::logger.info("Group mesage ====> ");
+          });
   }
 
   // 退出函数
