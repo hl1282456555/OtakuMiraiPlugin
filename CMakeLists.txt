@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 # MSVC设置：以utf8编译
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8:/Ehs:/Eha>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8:/Ehs:/Eha>")
 
 # C++ 标准：17+
 set(CMAKE_CXX_STANDARD 17)
@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 声明C++项目
-project(MiraiCPPlugin LANGUAGES CXX)
+project(OtakuMiraiPlugin LANGUAGES CXX)
 
 # 寻找库的头文件
 set(SOURCE_HEADER_PATH
@@ -26,11 +26,11 @@ file(GLOB PLUGIN_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 # 添加动态库编译目标
 add_library(
-    MiraiCPPlugin
+    OtakuMiraiPlugin
     SHARED
     single_include/MiraiCP/MiraiCP.cpp # MiraiCP 源文件
     ${PLUGIN_SOURCE_PATH}
 )
 
 # 引入全部头文件路径
-target_include_directories(MiraiCPPlugin PUBLIC ${SOURCE_HEADER_PATH})
+target_include_directories(OtakuMiraiPlugin PUBLIC ${SOURCE_HEADER_PATH})
