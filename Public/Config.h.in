@@ -1,0 +1,2 @@
+#define OtakuMiraiPlugin_VERSION_MAJOR @OtakuMiraiPlugin_VERSION_MAJOR@
+#define OtakuMiraiPlugin_VERSION_MINOR @OtakuMiraiPlugin_VERSION_MINOR@

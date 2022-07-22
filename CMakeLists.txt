@@ -1,36 +1,24 @@
-# 最低cmake版本
 cmake_minimum_required(VERSION 3.10)
 
-# MSVC设置：以utf8编译
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+project(OtakuMiraiPlugin VERSION 1.0)
 
-# C++ 标准：17+
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+configure_file(./Public/Config.h.in ./Public/Config.h)
 
-# 声明C++项目
-project(OtakuMiraiPlugin LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# 寻找库的头文件
-set(SOURCE_HEADER_PATH
-    ${CMAKE_CURRENT_SOURCE_DIR}/single_include/3rd_include
-    ${CMAKE_CURRENT_SOURCE_DIR}/single_include/3rd_include/utf8
-    ${CMAKE_CURRENT_SOURCE_DIR}/single_include/3rd_include/utf8/utf8
-    ${CMAKE_CURRENT_SOURCE_DIR}/single_include/MiraiCP
-)
+add_library(OtakuMiraiPlugin SHARED 
+	"${PROJECT_SOURCE_DIR}/Private/main.cpp"
+	"${PROJECT_SOURCE_DIR}/ThirdParty/MiraiCP/MiraiCP.cpp"
+	)
 
-# 添加src目录下所有源文件（每次新增文件不要修改cmake，只需重新执行cmake命令）
-file(GLOB PLUGIN_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+target_include_directories(OtakuMiraiPlugin PUBLIC 
+	"${PROJECT_BINARY_DIR}" 
+	"${PROJECT_SOURCE_DIR}/Public"
+	"${PROJECT_SOURCE_DIR}/ThirdParty/MiraiCP"
+	"${PROJECT_SOURCE_DIR}/ThirdParty/utf8" 
+	"${PROJECT_SOURCE_DIR}/ThirdParty/json" 
+	"${PROJECT_SOURCE_DIR}/ThirdParty/cpp-httplib"
+	)
 
-# 添加动态库编译目标
-add_library(
-    OtakuMiraiPlugin
-    SHARED
-    single_include/MiraiCP/MiraiCP.cpp # MiraiCP 源文件
-    ${PLUGIN_SOURCE_PATH}
-)
-
-# 引入全部头文件路径
-target_include_directories(OtakuMiraiPlugin PUBLIC ${SOURCE_HEADER_PATH})
+#target_link_libraries(OtakuMiraiPlugin PUBLIC )
