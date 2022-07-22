@@ -7,8 +7,6 @@ configure_file(OtakuMiraiPluginConfig.h.in ./Public/OtakuMiraiPluginConfig.h)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_subdirectory(ThirdParty/utf8)
-
 file(GLOB_RECURSE SOURCE_PUBLIC
 	"${PROJECT_SOURCE_DIR}/Source/Public/*.h"
 	"${PROJECT_SOURCE_DIR}/Source/Public/*.hpp"
