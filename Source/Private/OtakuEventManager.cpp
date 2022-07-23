@@ -32,7 +32,8 @@ void FOtakuEventManager::Initialize()
 	MiraiCP::Event::registerEvent<MiraiCP::BotLeaveEvent>([&](MiraiCP::BotLeaveEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::BotLeaveEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinRequestEvent>([&](MiraiCP::MemberJoinRequestEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinRequestEvent>(Event)); });
 
-	MiraiCP::MiraiCPNewThread MainLoopThread(std::bind(&FOtakuEventManager::Run, this));
+	std::thread MainLoopThread(std::bind(&FOtakuEventManager::Run, this));
+	MainLoopThread.detach();
 }
 
 void FOtakuEventManager::RequestExit()
