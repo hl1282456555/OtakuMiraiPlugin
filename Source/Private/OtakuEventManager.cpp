@@ -22,7 +22,7 @@ FOtakuEventManager& FOtakuEventManager::Get()
 
 void FOtakuEventManager::Initialize()
 {
-	MiraiCP::Event::registerEvent<MiraiCP::GroupMessageEvent>([&](MiraiCP::GroupMessageEvent Event){ OnNewEventReceived(std::make_shared<MiraiCP::GroupMessageEvent>(Event)); });
+	/*MiraiCP::Event::registerEvent<MiraiCP::GroupMessageEvent>([&](MiraiCP::GroupMessageEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupMessageEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::GroupInviteEvent>([&](MiraiCP::GroupInviteEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupInviteEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinEvent>([&](MiraiCP::MemberJoinEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::RecallEvent>([&](MiraiCP::RecallEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::RecallEvent>(Event)); });
@@ -30,7 +30,7 @@ void FOtakuEventManager::Initialize()
 	MiraiCP::Event::registerEvent<MiraiCP::GroupTempMessageEvent>([&](MiraiCP::GroupTempMessageEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupTempMessageEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::NudgeEvent>([&](MiraiCP::NudgeEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::NudgeEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::BotLeaveEvent>([&](MiraiCP::BotLeaveEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::BotLeaveEvent>(Event)); });
-	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinRequestEvent>([&](MiraiCP::MemberJoinRequestEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinRequestEvent>(Event)); });
+	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinRequestEvent>([&](MiraiCP::MemberJoinRequestEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinRequestEvent>(Event)); });*/
 
 	std::thread MainLoopThread(std::bind(&FOtakuEventManager::Run, this));
 	MainLoopThread.detach();
@@ -97,6 +97,11 @@ void FOtakuEventManager::Run()
 std::shared_ptr<MiraiCP::MiraiCPEvent> FOtakuEventManager::DequeueEvent()
 {
 	std::scoped_lock ScopedLock(EventQueueLock);
+
+	if (MiraiCPEventQueue.empty())
+	{
+		return nullptr;
+	}
 
 	std::shared_ptr<MiraiCP::MiraiCPEvent> Event = MiraiCPEventQueue.front();
 	MiraiCPEventQueue.pop();
