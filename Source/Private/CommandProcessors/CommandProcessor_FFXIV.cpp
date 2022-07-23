@@ -65,14 +65,14 @@ void FCommandProcessor_FFXIV::ProcessCommand_ListWorlds(const std::shared_ptr<Mi
 		cpr::Response Response = cpr::Get(cpr::Url{ "https://universalis.app/api/v2/worlds" });
 		if (Response.status_code != 200 || Response.text.empty())
 		{
-			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询ListWorlds接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 			return;
 		}
 
 		nlohmann::json WorldsJson = nlohmann::json::parse(Response.text);
 		if (!WorldsJson.is_array())
 		{
-			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询ListWorlds接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 			return;
 		}
 
@@ -93,10 +93,25 @@ void FCommandProcessor_FFXIV::ProcessCommand_ListWorlds(const std::shared_ptr<Mi
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ResponseMessage), Event->message.source.value());
 	}
 	catch (nlohmann::json::exception& Error) {
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询ListWorlds接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 	}
 	
 #else
-	Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询ListWorlds接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+	Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+#endif
+}
+
+void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
+{
+#if WITH_HTTP_REQUEST && WITH_OPENSSL
+	try {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+	}
+	catch (nlohmann::json::exception& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+	}
+
+#else
+	Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 #endif
 }

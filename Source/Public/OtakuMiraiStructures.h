@@ -20,12 +20,14 @@ static std::map<std::string, EMessageCommandType> MessageCommandTypeNameMap
 enum class EFFXIVCommandType
 {
 	ListWorlds = 0,
+	MarketItem = 1,
 	Unsupported
 };
 
 static std::map<std::string, EFFXIVCommandType> FFXIVCommandTypeNameMap
 {
 	{"list_worlds", EFFXIVCommandType::ListWorlds},
+	{"mitem", EFFXIVCommandType::MarketItem},
 	{"unsupported", EFFXIVCommandType::Unsupported}
 };
 
