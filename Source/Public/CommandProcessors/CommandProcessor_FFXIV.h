@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <thread>
 
 class FCommandProcessor_FFXIV : public ICommandProcessor
 {
@@ -23,9 +24,14 @@ protected:
 
 	virtual void ProcessCommand_ListWorlds(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
 	virtual void ProcessCommand_MarketItem(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
+	virtual void ProcessCommand_RefreshDCMap(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
+	virtual void ProcessCommand_RefreshItemIds(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
 
 private:
 	std::map<EFFXIVCommandType, std::function<void(const std::shared_ptr<MiraiCP::GroupMessageEvent>&, const std::vector<std::string>&)>> CommandProcessor;
+
+	std::map<std::string, std::string> DataCenterMap;
+	std::map<std::string, int> ItemIdMap;
 };
 
 #endif

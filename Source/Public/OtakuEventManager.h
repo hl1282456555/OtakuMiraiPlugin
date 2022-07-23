@@ -45,7 +45,7 @@ protected:
 private:
 	std::atomic<bool> bRequestedExit;
 
-	std::mutex EventQueueLock;
+	static std::mutex EventQueueLock;
 	std::queue<std::shared_ptr<MiraiCP::MiraiCPEvent>> MiraiCPEventQueue;
 
 	std::map<EMessageCommandType, std::shared_ptr<ICommandProcessor>> MessageCommandProcessors;

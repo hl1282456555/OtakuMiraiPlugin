@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+std::mutex FOtakuEventManager::EventQueueLock;
+
 FOtakuEventManager::FOtakuEventManager()
 	: bRequestedExit(false)
 {
