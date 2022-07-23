@@ -106,15 +106,15 @@ void FCommandProcessor_FFXIV::ProcessCommand_ListWorlds(const std::shared_ptr<Mi
 
 void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
 {
-	if (Arguments.size() < 2)
+	if (Arguments.size() < 3)
 	{
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("请按照正确的格式查询【/mitem 大区名称 物品名称/物品名称HQ】！"), Event->message.source.value());
 		return;
 	}
 
 	bool bQueryHQ = false;
-	std::string DataCenterName = Arguments[0];
-	std::string ItemName = Arguments[1];
+	std::string DataCenterName = Arguments[1];
+	std::string ItemName = Arguments[2];
 
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
@@ -127,7 +127,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			return;
 		}
 
-		size_t HQCheckPos = ItemName.size() - 3;
+		size_t HQCheckPos = ItemName.size() - 2;
 		if (ItemName.at(HQCheckPos) == 'H' || ItemName.at(HQCheckPos) == 'h' || ItemName.at(HQCheckPos + 1) == 'Q' || ItemName.at(HQCheckPos + 1) == 'q')
 		{
 			bQueryHQ = true;
@@ -170,9 +170,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			long TotalPrice = HistoryItem["total"];
 			int ItemCount = TotalPrice / PricePerUnit;
 
-			ReplyMessage += HistoryItem["worldName"] + "\t";
-			ReplyMessage += (bQueryHQ ? "O\t" : "X\t");
-			ReplyMessage += HistoryItem["buyerName"] + "\t";
+			std::string WorldName = HistoryItem["worldName"];
+			std::string BuyerName = HistoryItem["buyerName"];
+
+			ReplyMessage += WorldName + "\t" + (bQueryHQ ? "O\t" : "X\t") + BuyerName + "\t";
 			ReplyMessage += std::to_string(PricePerUnit) + "\t";
 			ReplyMessage += "x" + std::to_string(ItemCount) + "\r\n";
 		}
