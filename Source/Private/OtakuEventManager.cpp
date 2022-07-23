@@ -22,7 +22,7 @@ FOtakuEventManager& FOtakuEventManager::Get()
 
 void FOtakuEventManager::Initialize()
 {
-	/*MiraiCP::Event::registerEvent<MiraiCP::GroupMessageEvent>([&](MiraiCP::GroupMessageEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupMessageEvent>(Event)); });
+	MiraiCP::Event::registerEvent<MiraiCP::GroupMessageEvent>([&](MiraiCP::GroupMessageEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupMessageEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::GroupInviteEvent>([&](MiraiCP::GroupInviteEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupInviteEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinEvent>([&](MiraiCP::MemberJoinEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::RecallEvent>([&](MiraiCP::RecallEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::RecallEvent>(Event)); });
@@ -30,7 +30,7 @@ void FOtakuEventManager::Initialize()
 	MiraiCP::Event::registerEvent<MiraiCP::GroupTempMessageEvent>([&](MiraiCP::GroupTempMessageEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::GroupTempMessageEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::NudgeEvent>([&](MiraiCP::NudgeEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::NudgeEvent>(Event)); });
 	MiraiCP::Event::registerEvent<MiraiCP::BotLeaveEvent>([&](MiraiCP::BotLeaveEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::BotLeaveEvent>(Event)); });
-	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinRequestEvent>([&](MiraiCP::MemberJoinRequestEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinRequestEvent>(Event)); });*/
+	MiraiCP::Event::registerEvent<MiraiCP::MemberJoinRequestEvent>([&](MiraiCP::MemberJoinRequestEvent Event) { OnNewEventReceived(std::make_shared<MiraiCP::MemberJoinRequestEvent>(Event)); });
 
 	std::thread MainLoopThread(std::bind(&FOtakuEventManager::Run, this));
 	MainLoopThread.detach();
@@ -90,7 +90,7 @@ void FOtakuEventManager::Run()
 		Tick(DeltaTime.count() / 1000.0f);
 
 		PreFinishTime = std::chrono::steady_clock::now();
-		std::this_thread::sleep_for(std::chrono::seconds(0));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -147,16 +147,17 @@ bool FOtakuEventManager::ProcessMessageCommandChecked(const std::shared_ptr<Mira
 		return true;
 	}
 
-	std::string::const_iterator CommandSplitIt = std::find(Message->content.cbegin(), Message->content.cend(), ' ');
-	if (CommandSplitIt == Message->content.cend())
+	std::string CommandParams = Message->content;
+
+	std::string::const_iterator CommandSplitIt = std::find(CommandParams.cbegin(), CommandParams.cend(), ' ');
+	if (CommandSplitIt == CommandParams.cend())
 	{
-		Event->botlogger.info("Not found params from command content : ", Message->content);
+		Event->botlogger.info("Not found params from command content : ", CommandParams);
 
 		return true;
 	}
 
-	std::string CommandParams = Message->content;
-	CommandParams.erase(CommandSplitIt, CommandParams.cbegin());
+	CommandParams.erase(CommandParams.cbegin(), CommandSplitIt + 1);
 
 	MessageCommandProcessors[CommandType]->ProcessMessageCommand(Event, CommandParams);
 	return true;
