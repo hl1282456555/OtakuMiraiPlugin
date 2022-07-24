@@ -190,7 +190,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 		QueryUrl += DataCenterName + "/" + std::to_string(ItemRowResult.fetchOne().get(0).get<int>());
 
 		cpr::Response Response = cpr::Get(cpr::Url{ QueryUrl }, 
-			cpr::Parameters{ {"listings", "0"}, {"entries", "10"}, {"hq", bQueryHQ ? "true" : "false"} }
+			cpr::Parameters{ {"listings", "10"}, {"entries", "0"}, {"hq", bQueryHQ ? "true" : "false"} }
 		);
 
 		if (Response.status_code != 200 || Response.text.empty())
@@ -201,35 +201,37 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 		}
 
 		auto ResponseJson = nlohmann::json::parse(Response.text);
-		if (ResponseJson.find("recentHistory") == ResponseJson.cend() || !ResponseJson["recentHistory"].is_array())
+		if (!ResponseJson["listings"].is_array() || ResponseJson.find("listings") == ResponseJson.cend())
 		{
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，暂时没有查询到您需要的数据！"), Event->message.source.value());
 			return;
 		}
 
-		std::stringstream ReplyStream;
-		ReplyStream << std::setw(20) << "服务器"
-			<< std::setw(20) << "HQ"
-			<< std::setw(20) << "单价"
-			<< std::endl;
+		long long LastReviewTime = 0;
+		std::vector<std::vector<std::string>> ReplySource;
+		ReplySource.push_back(std::vector<std::string>{"价格", "数量", "总价", "来源"});
 
-		auto HistoryListJson = ResponseJson["recentHistory"];
-		for (nlohmann::json HistoryItem : HistoryListJson)
+		auto ListingListJson = ResponseJson["listings"];
+		for (nlohmann::json ListingItem : ListingListJson)
 		{
-			long PricePerUnit = HistoryItem["pricePerUnit"];
-			long TotalPrice = HistoryItem["total"];
-			int ItemCount = TotalPrice / PricePerUnit;
+			if (LastReviewTime == 0)
+			{
+				LastReviewTime = ListingItem["lastReviewTime"];
+			}
 
-			std::string WorldName = HistoryItem["worldName"];
-			std::string BuyerName = HistoryItem["buyerName"];
+			long PricePerUnit = ListingItem["pricePerUnit"];
+			long TotalPrice = ListingItem["total"];
+			int ItemCount = ListingItem["quantity"];
 
-			ReplyStream << std::setw(20) << WorldName
-				<< std::setw(20) << (bQueryHQ ? "O" : "X")
-				<< std::setw(20) << PricePerUnit
-				<< std::endl;
+			std::string WorldName = ListingItem["worldName"];
+			std::string RetainerName = ListingItem["retainerName"];
+
+			ReplySource.push_back(std::vector<std::string>{std::to_string(PricePerUnit), std::to_string(ItemCount), std::to_string(TotalPrice), WorldName});
 		}
 
-		Event->group.sendMessage(MiraiCP::PlainText(ReplyStream.str()));
+		std::string ReplyMessage = UGenericStringUtils::FormatTextTableStyle(10, ReplySource);
+		ReplyMessage += "\r\n最后更新时间为 : " + UGenericStringUtils::ConvertTimestamp(LastReviewTime);
+		Event->group.sendMessage(MiraiCP::PlainText(ReplyMessage));
 	}
 	catch (nlohmann::json::exception& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());

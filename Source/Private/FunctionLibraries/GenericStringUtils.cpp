@@ -1,5 +1,11 @@
 #include "GenericStringUtils.h"
 
+#include <cwchar>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+#include <cstdio>
+
 std::vector<std::string> UGenericStringUtils::SplitIntoArray(const std::string& Source, const std::string& Delimite, bool bCullEmpty /*= true*/)
 {
 	std::vector<std::string> Result;
@@ -82,4 +88,77 @@ std::vector<std::string> UGenericStringUtils::SplitIntoArray(const std::string& 
 	}
 
 	return Result;
+}
+
+std::string UGenericStringUtils::FormatTextTableStyle(int FillCount, const std::vector<std::vector<std::string>>& Source)
+{
+	if (Source.empty())
+	{
+		return "";
+	}
+
+	std::vector<std::string> FinalRow;
+	FinalRow.resize(Source.size());
+
+	std::vector<int> ColumnLengths;
+	ColumnLengths.resize(Source.size());
+
+	int ColumnCount = Source[0].size();
+	for (int ColumnIndex = 0; ColumnIndex < ColumnCount; ColumnIndex++)
+	{
+		int RowMaximumLength = 0;
+		for (int RowIndex = 0; RowIndex < Source.size(); RowIndex++)
+		{
+			FinalRow[RowIndex].append(Source[RowIndex][ColumnIndex]);
+			ColumnLengths[RowIndex] = CalculateTextLength(Source[RowIndex][ColumnIndex]);
+			RowMaximumLength = RowMaximumLength < ColumnLengths[RowIndex] ? ColumnLengths[RowIndex] : RowMaximumLength;
+		}
+
+		for (int RowIndex = 0; RowIndex < FinalRow.size(); RowIndex++)
+		{
+			int RemainingCount = RowMaximumLength - ColumnLengths[RowIndex];
+			FinalRow[RowIndex].append(RemainingCount, ' ');
+			FinalRow[RowIndex].append("\t");
+		}
+	}
+
+	std::string ResultContent;
+	for (auto RowIt = FinalRow.cbegin(); RowIt != FinalRow.cend(); ++RowIt)
+	{
+		ResultContent.append(*RowIt);
+		if ((RowIt + 1) != FinalRow.cend())
+		{
+			ResultContent.append("\r\n");
+		}
+	}
+
+	return ResultContent;
+}
+
+unsigned int UGenericStringUtils::CalculateTextLength(const std::string& Source)
+{
+	int RawColumnLength = Source.length();
+	int RealColumnLength = 0;
+
+	unsigned int Index = 0;
+	while (Index < RawColumnLength)
+	{
+		Index += std::mblen(&Source[Index], RawColumnLength - Index);
+		RealColumnLength++;
+	}
+
+	return RealColumnLength;
+}
+
+std::string UGenericStringUtils::ConvertTimestamp(long long Timestamp)
+{
+	std::locale::global(std::locale("zh_CN.utf8"));
+	time_t CachedTimestamp = Timestamp * 1000;
+	char MbStr[128] = { 0 };
+	if (std::strftime(MbStr, sizeof(MbStr), "%A %c", std::localtime(&Timestamp)) == 0)
+	{
+		return "";
+	}
+
+	return std::string(MbStr);
 }
