@@ -2,7 +2,9 @@
 #include "OtakuEventManager.h"
 #include "GenericStringUtils.h"
 
-#include "TextTable.hpp"
+#include <iomanip>
+
+#include "utf8.h"
 #if WITH_HTTP_REQUEST
 #include <cpr/cpr.h>
 #endif
@@ -13,7 +15,6 @@ CommandProcessor[EFFXIVCommandType::##CommandType] = std::bind(&FCommandProcesso
 REGISTER_COMMAND_PROCESSOR(FFXIV);
 
 FCommandProcessor_FFXIV::FCommandProcessor_FFXIV()
-	try
 	: MysqlSession(
 		mysqlx::SessionOption::HOST, "localhost",
 		mysqlx::SessionOption::PORT, 33060,
@@ -24,10 +25,6 @@ FCommandProcessor_FFXIV::FCommandProcessor_FFXIV()
 {
 	BindAllCommandProcessors();
 	InitMySQLDependecies();
-}
-catch (mysqlx::Error& Err) 
-{
-	std::cout << "Mysqlx error: " << Err.what() << std::endl;
 }
 
 FCommandProcessor_FFXIV::~FCommandProcessor_FFXIV()
@@ -159,11 +156,11 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
 		std::string QueryUrl("https://universalis.app/api/v2/");
-
+		
 		std::string WhereDCSql("dc_name=");
 		WhereDCSql += "'" + DataCenterName + "'";
 
-		mysqlx::RowResult DCRowResult = DCTable.select("*").where(DataCenterName).execute();
+		mysqlx::RowResult DCRowResult = DCTable.select("*").where(WhereDCSql).execute();
 
 		if (DCRowResult.getWarningsCount() > 0 || DCRowResult.count() <= 0)
 		{
@@ -210,10 +207,13 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			return;
 		}
 
-		TextTable ReplyTable;
-
-		ReplyTable.addRow(std::vector<std::string>{"服务器", "HQ", "买家", "单价", "数量"});
-		std::string ReplyMessage("服务器\tHQ\t买家\t\t单价\t\t数量\r\n");
+		std::stringstream ReplyStream;
+		ReplyStream << std::setw(20) << "服务器"
+			<< std::setw(20) << "HQ"
+			<< std::setw(20) << "买家"
+			<< std::setw(20) << "单价"
+			<< std::setw(20) << "数量"
+			<< std::endl;
 
 		auto HistoryListJson = ResponseJson["recentHistory"];
 		for (nlohmann::json HistoryItem : HistoryListJson)
@@ -225,12 +225,15 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			std::string WorldName = HistoryItem["worldName"];
 			std::string BuyerName = HistoryItem["buyerName"];
 
-			ReplyTable.addRow(std::vector<std::string>{WorldName, bQueryHQ ? "O" : "X", BuyerName, std::to_string(PricePerUnit), std::to_string(ItemCount)});
+			ReplyStream << std::setw(20) << WorldName
+				<< std::setw(20) << (bQueryHQ ? "O" : "X")
+				<< std::setw(20) << BuyerName
+				<< std::setw(20) << PricePerUnit
+				<< std::setw(20) << std::string("x") + std::to_string(ItemCount)
+				<< std::endl;
 		}
 
-		ReplyTable.setAlignment(10, TextTable::Alignment::LEFT);
-
-		Event->group.sendMessage(MiraiCP::PlainText(ReplyMessage));
+		Event->group.sendMessage(MiraiCP::PlainText(ReplyStream.str()));
 	}
 	catch (nlohmann::json::exception& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
