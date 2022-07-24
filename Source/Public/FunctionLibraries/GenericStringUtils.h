@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "httplib.h"
-
 class UGenericStringUtils
 {
 private:

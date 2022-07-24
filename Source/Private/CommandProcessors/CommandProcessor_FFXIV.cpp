@@ -2,6 +2,7 @@
 #include "OtakuEventManager.h"
 #include "GenericStringUtils.h"
 
+#include "TextTable.hpp"
 #if WITH_HTTP_REQUEST
 #include <cpr/cpr.h>
 #endif
@@ -12,8 +13,21 @@ CommandProcessor[EFFXIVCommandType::##CommandType] = std::bind(&FCommandProcesso
 REGISTER_COMMAND_PROCESSOR(FFXIV);
 
 FCommandProcessor_FFXIV::FCommandProcessor_FFXIV()
+	try
+	: MysqlSession(
+		mysqlx::SessionOption::HOST, "localhost",
+		mysqlx::SessionOption::PORT, 33060,
+		mysqlx::SessionOption::USER, "luo",
+		mysqlx::SessionOption::PWD, "luoyu@110030",
+		mysqlx::SessionOption::DB, "ffxiv_data_schema"
+	)
 {
 	BindAllCommandProcessors();
+	InitMySQLDependecies();
+}
+catch (mysqlx::Error& Err) 
+{
+	std::cout << "Mysqlx error: " << Err.what() << std::endl;
 }
 
 FCommandProcessor_FFXIV::~FCommandProcessor_FFXIV()
@@ -58,7 +72,12 @@ void FCommandProcessor_FFXIV::BindAllCommandProcessors()
 	REGISTER_FFXIV_COMMAND_PROCESSOR(ListWorlds);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(MarketItem);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshDCMap);
-	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshItemIds);
+	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshItemIntro);
+}
+
+void FCommandProcessor_FFXIV::InitMySQLDependecies()
+{
+	
 }
 
 void FCommandProcessor_FFXIV::ProcessCommand_ListWorlds(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
@@ -112,6 +131,27 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 		return;
 	}
 
+	mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
+	if (!FFXIVSchema.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法获取物品信息！"), Event->message.source.value());
+		return;
+	}
+
+	mysqlx::Table DCTable = FFXIVSchema.getTable("ffxiv_datacenter_table", true);
+	if (!DCTable.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法获取物品信息！"), Event->message.source.value());
+		return;
+	}
+
+	mysqlx::Table ItemIntroTable = FFXIVSchema.getTable("ffxiv_item_intro_table", true);
+	if (!ItemIntroTable.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法获取物品信息！"), Event->message.source.value());
+		return;
+	}
+
 	bool bQueryHQ = false;
 	std::string DataCenterName = Arguments[1];
 	std::string ItemName = Arguments[2];
@@ -120,7 +160,12 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 	try {
 		std::string QueryUrl("https://universalis.app/api/v2/");
 
-		if (DataCenterMap.find(DataCenterName) == DataCenterMap.cend())
+		std::string WhereDCSql("dc_name=");
+		WhereDCSql += "'" + DataCenterName + "'";
+
+		mysqlx::RowResult DCRowResult = DCTable.select("*").where(DataCenterName).execute();
+
+		if (DCRowResult.getWarningsCount() > 0 || DCRowResult.count() <= 0)
 		{
 			Event->botlogger.warning("Not found the world id for ", DataCenterName);
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，无法查询到您所输入的服务器！"), Event->message.source.value());
@@ -134,14 +179,18 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			ItemName.erase(ItemName.cbegin() + HQCheckPos, ItemName.cend());
 		}
 
-		if (ItemIdMap.find(ItemName) == ItemIdMap.cend())
+		std::string ItemInfoSql("item_name=");
+		ItemInfoSql += "'" + ItemName + "'";
+		mysqlx::RowResult ItemRowResult = ItemIntroTable.select("*").where(ItemInfoSql).execute();
+
+		if (ItemRowResult.getWarningsCount() > 0 || ItemRowResult.count() <= 0)
 		{
 			Event->botlogger.warning("Not found the item id for ", ItemName);
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，无法查询到您所输入的物品！"), Event->message.source.value());
 			return;
 		}
-
-		QueryUrl += DataCenterName + "/" + std::to_string(ItemIdMap[ItemName]);
+		
+		QueryUrl += DataCenterName + "/" + std::to_string(ItemRowResult.fetchOne().get(0).get<int>());
 
 		cpr::Response Response = cpr::Get(cpr::Url{ QueryUrl }, 
 			cpr::Parameters{ {"listings", "0"}, {"entries", "10"}, {"hq", bQueryHQ ? "true" : "false"} }
@@ -161,6 +210,9 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			return;
 		}
 
+		TextTable ReplyTable;
+
+		ReplyTable.addRow(std::vector<std::string>{"服务器", "HQ", "买家", "单价", "数量"});
 		std::string ReplyMessage("服务器\tHQ\t买家\t\t单价\t\t数量\r\n");
 
 		auto HistoryListJson = ResponseJson["recentHistory"];
@@ -173,10 +225,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			std::string WorldName = HistoryItem["worldName"];
 			std::string BuyerName = HistoryItem["buyerName"];
 
-			ReplyMessage += WorldName + "\t" + (bQueryHQ ? "O\t" : "X\t") + BuyerName + "\t";
-			ReplyMessage += std::to_string(PricePerUnit) + "\t";
-			ReplyMessage += "x" + std::to_string(ItemCount) + "\r\n";
+			ReplyTable.addRow(std::vector<std::string>{WorldName, bQueryHQ ? "O" : "X", BuyerName, std::to_string(PricePerUnit), std::to_string(ItemCount)});
 		}
+
+		ReplyTable.setAlignment(10, TextTable::Alignment::LEFT);
 
 		Event->group.sendMessage(MiraiCP::PlainText(ReplyMessage));
 	}
@@ -191,6 +243,20 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 
 void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
 {
+	mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
+	if (!FFXIVSchema.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法刷新大区服务器映射表！"), Event->message.source.value());
+		return;
+	}
+
+	mysqlx::Table DCTable = FFXIVSchema.getTable("ffxiv_datacenter_table", true);
+	if (!DCTable.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法刷新大区服务器映射表！"), Event->message.source.value());
+		return;
+	}
+
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
 		std::string QueryRegionUrl("https://universalis.app/api/v2/data-centers");
@@ -211,10 +277,33 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<
 			return;
 		}
 
+		mysqlx::SqlResult Result = MysqlSession.sql("truncate table ffxiv_datacenter_table").execute();
+		if (Result.getWarnings().begin() != Result.getWarnings().end())
+		{
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，刷新数据库失败，无法刷新大区服务器映射表！"), Event->message.source.value());
+			return;
+		}
+
+		std::string DCName, RegionName;
+		MysqlSession.startTransaction();
+
 		for (nlohmann::json RegionItem : RegionListJson)
 		{
-			DataCenterMap[RegionItem["name"]] = RegionItem["region"];
+			std::string WorldIdArrayStr;
+			std::vector<int> WorldIdList = RegionItem["worlds"];
+			for (const int& WorldItem : WorldIdList)
+			{
+				WorldIdArrayStr += std::to_string(WorldItem) + ",";
+			}
+			WorldIdArrayStr.erase(WorldIdArrayStr.cend());
+
+			DCName = RegionItem["name"];
+			RegionName = RegionItem["region"];
+
+			DCTable.insert("dc_name", "dc_region", "dc_world_ids").values(DCName, RegionName, WorldIdArrayStr).execute();
 		}
+
+		MysqlSession.commit();
 
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("大区服务器映射表成功刷新！"), Event->message.source.value());
 	}
@@ -227,14 +316,31 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<
 #endif
 }
 
-void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIds(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
+void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
 {
+	mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
+	if (!FFXIVSchema.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法刷新大区服务器映射表！"), Event->message.source.value());
+		return;
+	}
+
+	mysqlx::Table ItemIntroTable = FFXIVSchema.getTable("ffxiv_item_intro_table", true);
+	if (!ItemIntroTable.existsInDatabase())
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，数据库异常，无法刷新大区服务器映射表！"), Event->message.source.value());
+		return;
+	}
+
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
 		std::string QueryItemUrl("https://cafemaker.wakingsands.com/item");
 
 		int TotalQueryCount = 13;
 		int QueryFailedCount = 0;
+		int TotalItemCount = 0;
+
+		MysqlSession.startTransaction();
 
 		for (int Index = 0; Index < TotalQueryCount; Index++)
 		{
@@ -276,14 +382,26 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIds(const std::shared_pt
 					continue;
 				}
 
+				TotalItemCount++;
+
 				int ItemId = ItemInfo["ID"];
-				ItemIdMap[ItemName] = ItemId;
+				std::string ItemIconPath = ItemInfo["Icon"];
+				std::string ItemDetailsPath = ItemInfo["Url"];
+
+				ItemIntroTable.insert("item_id", "item_name", "item_icon_path", "item_details_path").values(ItemId, ItemName, ItemIconPath, ItemDetailsPath).execute();
 			}
+
+			int ProgressPercent = (Index + 1) / TotalQueryCount * 100;
+			std::string ProgressPercentReply("当前处理物品信息列表进度..........");
+			ProgressPercentReply += std::to_string(ProgressPercent) + "%";
+			Event->group.sendMessage(MiraiCP::PlainText(ProgressPercentReply));
 		}
+
+		MysqlSession.commit();
 
 		std::string ReplyMessage("物品ID映射表刷新完成！\r\n");
 		ReplyMessage += " - 一共调用了" + std::to_string(TotalQueryCount) + "次接口，失败了" + std::to_string(QueryFailedCount) + "次.\r\n";
-		ReplyMessage += "一共刷新了" + std::to_string(ItemIdMap.size()) + "个物品ID。";
+		ReplyMessage += "一共刷新了" + std::to_string(TotalItemCount) + "个物品ID。";
 
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ReplyMessage), Event->message.source.value());
 	}

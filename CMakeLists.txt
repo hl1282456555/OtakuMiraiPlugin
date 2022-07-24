@@ -21,6 +21,10 @@ add_library(${PROJECT_NAME} SHARED
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SOURCE_FILES})
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${THIRDPARTY_FILES})
 
+# Add TextTable multibyte support
+add_definitions(-DTEXTTABLE_ENCODE_MULTIBYTE_STRINGS)
+
+# Add http request ability support
 if (WITH_HTTP_REQUEST)
 	include(FetchContent)
 	FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
@@ -30,24 +34,48 @@ if (WITH_HTTP_REQUEST)
 	target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
 endif()
 
+# Add openssl support
 if (WITH_OPENSSL)
 	find_package(OpenSSL REQUIRED)
 	add_definitions(-DWITH_OPENSSL)
 	target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL)
 endif()
 
-set(PROJECT_PATHS)
-file(GLOB_RECURSE PROJECT_ALL_FILES ./Source/*.* ./ThirdParty/*.*)
+# Add MySQL-connector-cpp support, we used cxx17, so we should define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING to disable std::iterator warning
+add_definitions(-DWITH_MYSQL -D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING -DSTATIC_CONCPP)
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/include")
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+list(APPEND MYSQL_CPP_CONN_LIBS 
+	"${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/lib/Win64/mysqlcppconn8.lib"
+	)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+endif()
 
-foreach(CURRENT_PROJECT_FILE ${PROJECT_ALL_FILES})
+if (NOT MYSQL_CPP_CONN_LIBS EQUAL "")
+	target_link_libraries(${PROJECT_NAME} PRIVATE "${MYSQL_CPP_CONN_LIBS}")
+endif()
+
+# Add utf8 charset translation support
+add_definitions(-DWITH_UTF8_TRANSLATION)
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/utf8")
+
+# Add json support
+add_definitions(-DWITH_JSON)
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/json")
+
+# Collect source files from project dir.
+set(PROJECT_SOURCE_PATHS)
+file(GLOB_RECURSE PROJECT_SOURCE_FILES ./Source/*.*)
+
+foreach(CURRENT_PROJECT_FILE ${PROJECT_SOURCE_FILES})
 	if (NOT IS_DIRECTORY ${CURRENT_PROJECT_FILE})
 		get_filename_component(TEMP_FILE_PATH ${CURRENT_PROJECT_FILE} DIRECTORY)
-		list(APPEND PROJECT_PATHS ${TEMP_FILE_PATH})
+		list(APPEND PROJECT_SOURCE_PATHS ${TEMP_FILE_PATH})
 	endif()
 endforeach()
 
-list(REMOVE_DUPLICATES PROJECT_PATHS)
+list(REMOVE_DUPLICATES PROJECT_SOURCE_PATHS)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_PATHS}")
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_PATHS}")
 
 target_compile_options(${PROJECT_NAME} PUBLIC /EHs /utf-8)
