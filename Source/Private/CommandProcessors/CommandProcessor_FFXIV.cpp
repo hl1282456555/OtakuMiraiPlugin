@@ -210,9 +210,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 		std::stringstream ReplyStream;
 		ReplyStream << std::setw(20) << "服务器"
 			<< std::setw(20) << "HQ"
-			<< std::setw(20) << "买家"
 			<< std::setw(20) << "单价"
-			<< std::setw(20) << "数量"
 			<< std::endl;
 
 		auto HistoryListJson = ResponseJson["recentHistory"];
@@ -227,9 +225,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 
 			ReplyStream << std::setw(20) << WorldName
 				<< std::setw(20) << (bQueryHQ ? "O" : "X")
-				<< std::setw(20) << BuyerName
 				<< std::setw(20) << PricePerUnit
-				<< std::setw(20) << std::string("x") + std::to_string(ItemCount)
 				<< std::endl;
 		}
 
