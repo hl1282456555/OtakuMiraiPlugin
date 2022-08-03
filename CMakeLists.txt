@@ -48,8 +48,8 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
 	target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/include")
 	target_link_libraries(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/lib/Win64/mysqlcppconn8.lib")
 elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_include_directories(${PROJECT_NAME} PUBLIC "/usr/include/")
-	target_link_libraries(${PROJECT_NAME} PRIVATE "/usr/lib/x86_64-linux-gnu/libmysqlcppconn8.so.2")
+	target_include_directories(${PROJECT_NAME} PUBLIC "/usr/include/mysql-cppconn-8/")
+	target_link_libraries(${PROJECT_NAME} PRIVATE "/usr/lib/x86_64-linux-gnu/libmysqlcppconn8.so")
 endif()
 
 # Add utf8 charset translation support
