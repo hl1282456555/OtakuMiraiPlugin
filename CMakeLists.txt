@@ -43,16 +43,13 @@ endif()
 
 # Add MySQL-connector-cpp support, we used cxx17, so we should define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING to disable std::iterator warning
 add_definitions(-DWITH_MYSQL -D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING -DSTATIC_CONCPP)
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/include")
-if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-list(APPEND MYSQL_CPP_CONN_LIBS 
-	"${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/lib/Win64/mysqlcppconn8.lib"
-	)
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-endif()
 
-if (NOT MYSQL_CPP_CONN_LIBS EQUAL "")
-	target_link_libraries(${PROJECT_NAME} PRIVATE "${MYSQL_CPP_CONN_LIBS}")
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+	target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/include")
+	target_link_libraries(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/ThirdParty/mysql-connector-c++/lib/Win64/mysqlcppconn8.lib")
+elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	target_include_directories(${PROJECT_NAME} PUBLIC "/usr/include/")
+	target_link_libraries(${PROJECT_NAME} PRIVATE "/usr/lib/x86_64-linux-gnu/libmysqlcppconn8.so.2")
 endif()
 
 # Add utf8 charset translation support
