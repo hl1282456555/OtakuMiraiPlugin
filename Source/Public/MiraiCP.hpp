@@ -22,38 +22,38 @@ namespace MiraiCP {
     const std::string MiraiCPVersion = "v2.12.0-RC2";
     struct PluginConfig {
         /// @brief 插件id, 要与别人不一样否则报错无法加载(建议用类包格式，如: io.github.nambers)
-        const char* id;
+        const char *id;
         /// @brief 插件名称
-        const char* name;
+        const char *name;
         /// @brief 插件版本
-        const char* version;
+        const char *version;
         /// @brief 插件作者(及联系方式)
-        const char* author;
+        const char *author;
         /// @brief [optional]插件描述
-        const char* description;
+        const char *description;
         /// @brief [optional]构建时间, 默认为__DATE__宏
-        const char* time = __DATE__;
-        const char* mversion = MiraiCPVersion.c_str();
+        const char *time = __DATE__;
+        const char *mversion = MiraiCPVersion.c_str();
         std::string getId() const {
-            return { id };
+            return {id};
         }
         std::string getName() const {
-            return { name };
+            return {name};
         }
         std::string getVersion() const {
-            return { version };
+            return {version};
         }
         std::string getAuthor() const {
-            return { author };
+            return {author};
         }
         std::string getDescription() const {
-            return { description };
+            return {description};
         }
         std::string getTime() const {
-            return { time };
+            return {time};
         }
         std::string getMVersion() const {
-            return { mversion };
+            return {mversion};
         }
         nlohmann::json serialize();
         std::string serialize2string();
@@ -92,7 +92,7 @@ namespace CommonTools {
     public:
         std::function<RT_TYPE()> defer_func;
         template<class F>
-        MiraiCPDefer(F&& func) : defer_func(std::forward<F>(func)) {
+        MiraiCPDefer(F &&func) : defer_func(std::forward<F>(func)) {
         }
         virtual ~MiraiCPDefer() {
             defer_func();
@@ -163,12 +163,12 @@ namespace MiraiCP {
     // always convert to const char* or std::string before using.
     class MiraiCPString {
         using string = std::string;
-        friend void swap(MiraiCPString&, MiraiCPString&) noexcept;
+        friend void swap(MiraiCPString &, MiraiCPString &) noexcept;
     private:
         static constexpr decltype(&::std::free) std_free_ptr = &::std::free;
     private:
         // to keep integration and safe for empty construction/deconstruction, always initialize here
-        char* str = nullptr;
+        char *str = nullptr;
         size_t _size = 0;
         decltype(&::std::free) free_this = std_free_ptr; // specify which free() to use; ensure deconstruction is paired to construction
     public:
@@ -180,23 +180,23 @@ namespace MiraiCP {
         // allocate memory for str
         void construction();
         ~MiraiCPString();
-        MiraiCPString(const MiraiCPString& other);
-        MiraiCPString(MiraiCPString&& temp) noexcept;
-        MiraiCPString(const char* char_str);
-        MiraiCPString(const std::string& string_str);
+        MiraiCPString(const MiraiCPString &other);
+        MiraiCPString(MiraiCPString &&temp) noexcept;
+        MiraiCPString(const char *char_str);
+        MiraiCPString(const std::string &string_str);
         std::string toString() const {
             if (str == nullptr || _size == 0) return {};
-            return { str };
+            return {str};
         }
         operator std::string() const {
             return toString();
         }
         // for safe destruction, DO NOT provide move convert to char*
         // the return value of this method can always be deleted by delete[] and is never nullptr
-        const char* copyToCharPtr() const;
-        bool operator==(const MiraiCPString& another) const;
-        MiraiCPString& operator=(const MiraiCPString& another);
-        MiraiCPString& operator=(MiraiCPString&& another) noexcept;
+        const char *copyToCharPtr() const;
+        bool operator==(const MiraiCPString &another) const;
+        MiraiCPString &operator=(const MiraiCPString &another);
+        MiraiCPString &operator=(MiraiCPString &&another) noexcept;
     };
     static_assert(sizeof(char) == 1, "Please make sure the size of char type is 1");
     static_assert(sizeof(MiraiCPString) == 3 * 8, "Please make sure MiraiCP is compiled under 64-bit mode.");
@@ -215,25 +215,25 @@ constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 namespace LibLoader::LoaderApi {
     using MiraiCP::MiraiCPString;
     LOADER_API_COUNT
-        MiraiCPString pluginOperation(const MiraiCPString&);
+    MiraiCPString pluginOperation(const MiraiCPString&);
     LOADER_API_COUNT
-        void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
+    void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
     LOADER_API_COUNT
-        MiraiCPString showAllPluginId();
+    MiraiCPString showAllPluginId();
     LOADER_API_COUNT
-        void enablePluginById(const MiraiCPString&);
+    void enablePluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void disablePluginById(const MiraiCPString&);
+    void disablePluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void enableAllPlugins();
+    void enableAllPlugins();
     LOADER_API_COUNT
-        void disableAllPlugins();
+    void disableAllPlugins();
     LOADER_API_COUNT
-        void loadNewPlugin(const MiraiCPString&, bool);
+    void loadNewPlugin(const MiraiCPString&, bool);
     LOADER_API_COUNT
-        void unloadPluginById(const MiraiCPString&);
+    void unloadPluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void reloadPluginById(const MiraiCPString&);
+    void reloadPluginById(const MiraiCPString&);
     struct interface_funcs {
         decltype(&pluginOperation) _pluginOperation;
         decltype(&loggerInterface) _loggerInterface;
@@ -250,7 +250,7 @@ namespace LibLoader::LoaderApi {
 #ifdef MIRAICP_LIB_LOADER
     constexpr inline interface_funcs collect_interface_functions(bool admin) {
         constexpr int counter = LOADERAPI_H_GET_COUNTER;
-        static_assert(sizeof(interface_funcs) == sizeof(void*) * counter);
+        static_assert(sizeof(interface_funcs) == sizeof(void *) * counter);
         if (admin) {
             constexpr int line0 = __LINE__;
             interface_funcs t = {
@@ -268,8 +268,7 @@ namespace LibLoader::LoaderApi {
             constexpr int line1 = __LINE__;
             static_assert(line1 - line0 == counter + 3);
             return t;
-        }
-        else {
+        } else {
             interface_funcs t2 = {
                     pluginOperation,
                     loggerInterface,
@@ -286,15 +285,15 @@ namespace LibLoader::LoaderApi {
 #define FUNC_EXIT FUNC_EXIT
 #define PLUGIN_INFO PLUGIN_INFO
 namespace LibLoader {
-    typedef void* plugin_handle;
+    typedef void *plugin_handle;
     /// @see @macro FUNC_ENTRANCE
-    typedef void (*plugin_entrance_func_ptr)(const LoaderApi::interface_funcs&);
+    typedef void (*plugin_entrance_func_ptr)(const LoaderApi::interface_funcs &);
     /// @see @macro FUNC_EVENT
-    typedef void (*plugin_event_func_ptr)(const char*);
+    typedef void (*plugin_event_func_ptr)(const char *);
     /// @see @macro FUNC_EXIT
     typedef void (*plugin_func_ptr)();
     /// @see @macro PLUGIN_INFO
-    typedef const MiraiCP::PluginConfig& (*plugin_info_func_ptr)();
+    typedef const MiraiCP::PluginConfig &(*plugin_info_func_ptr)();
 } // namespace LibLoader
 #endif //MIRAICP_PRO_COMMONTYPES_H
 // Copyright (c) 2022. Eritque arcus and contributors.
@@ -328,25 +327,25 @@ constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 namespace LibLoader::LoaderApi {
     using MiraiCP::MiraiCPString;
     LOADER_API_COUNT
-        MiraiCPString pluginOperation(const MiraiCPString&);
+    MiraiCPString pluginOperation(const MiraiCPString&);
     LOADER_API_COUNT
-        void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
+    void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
     LOADER_API_COUNT
-        MiraiCPString showAllPluginId();
+    MiraiCPString showAllPluginId();
     LOADER_API_COUNT
-        void enablePluginById(const MiraiCPString&);
+    void enablePluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void disablePluginById(const MiraiCPString&);
+    void disablePluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void enableAllPlugins();
+    void enableAllPlugins();
     LOADER_API_COUNT
-        void disableAllPlugins();
+    void disableAllPlugins();
     LOADER_API_COUNT
-        void loadNewPlugin(const MiraiCPString&, bool);
+    void loadNewPlugin(const MiraiCPString&, bool);
     LOADER_API_COUNT
-        void unloadPluginById(const MiraiCPString&);
+    void unloadPluginById(const MiraiCPString&);
     LOADER_API_COUNT
-        void reloadPluginById(const MiraiCPString&);
+    void reloadPluginById(const MiraiCPString&);
     struct interface_funcs {
         decltype(&pluginOperation) _pluginOperation;
         decltype(&loggerInterface) _loggerInterface;
@@ -363,7 +362,7 @@ namespace LibLoader::LoaderApi {
 #ifdef MIRAICP_LIB_LOADER
     constexpr inline interface_funcs collect_interface_functions(bool admin) {
         constexpr int counter = LOADERAPI_H_GET_COUNTER;
-        static_assert(sizeof(interface_funcs) == sizeof(void*) * counter);
+        static_assert(sizeof(interface_funcs) == sizeof(void *) * counter);
         if (admin) {
             constexpr int line0 = __LINE__;
             interface_funcs t = {
@@ -381,8 +380,7 @@ namespace LibLoader::LoaderApi {
             constexpr int line1 = __LINE__;
             static_assert(line1 - line0 == counter + 3);
             return t;
-        }
-        else {
+        } else {
             interface_funcs t2 = {
                     pluginOperation,
                     loggerInterface,
@@ -419,12 +417,12 @@ namespace MiraiCP {
     // always convert to const char* or std::string before using.
     class MiraiCPString {
         using string = std::string;
-        friend void swap(MiraiCPString&, MiraiCPString&) noexcept;
+        friend void swap(MiraiCPString &, MiraiCPString &) noexcept;
     private:
         static constexpr decltype(&::std::free) std_free_ptr = &::std::free;
     private:
         // to keep integration and safe for empty construction/deconstruction, always initialize here
-        char* str = nullptr;
+        char *str = nullptr;
         size_t _size = 0;
         decltype(&::std::free) free_this = std_free_ptr; // specify which free() to use; ensure deconstruction is paired to construction
     public:
@@ -436,23 +434,23 @@ namespace MiraiCP {
         // allocate memory for str
         void construction();
         ~MiraiCPString();
-        MiraiCPString(const MiraiCPString& other);
-        MiraiCPString(MiraiCPString&& temp) noexcept;
-        MiraiCPString(const char* char_str);
-        MiraiCPString(const std::string& string_str);
+        MiraiCPString(const MiraiCPString &other);
+        MiraiCPString(MiraiCPString &&temp) noexcept;
+        MiraiCPString(const char *char_str);
+        MiraiCPString(const std::string &string_str);
         std::string toString() const {
             if (str == nullptr || _size == 0) return {};
-            return { str };
+            return {str};
         }
         operator std::string() const {
             return toString();
         }
         // for safe destruction, DO NOT provide move convert to char*
         // the return value of this method can always be deleted by delete[] and is never nullptr
-        const char* copyToCharPtr() const;
-        bool operator==(const MiraiCPString& another) const;
-        MiraiCPString& operator=(const MiraiCPString& another);
-        MiraiCPString& operator=(MiraiCPString&& another) noexcept;
+        const char *copyToCharPtr() const;
+        bool operator==(const MiraiCPString &another) const;
+        MiraiCPString &operator=(const MiraiCPString &another);
+        MiraiCPString &operator=(MiraiCPString &&another) noexcept;
     };
     static_assert(sizeof(char) == 1, "Please make sure the size of char type is 1");
     static_assert(sizeof(MiraiCPString) == 3 * 8, "Please make sure MiraiCP is compiled under 64-bit mode.");
@@ -532,8 +530,8 @@ namespace MiraiCP {
         std::vector<QQID> getGroupList() const;
         /// 群列表string形式返回，利于保存
         std::string GroupListToString() const;
-        bool operator==(const Contact& c) const;
-        bool operator==(const Bot& b) const {
+        bool operator==(const Contact &c) const;
+        bool operator==(const Bot &b) const {
             return this->id == b.id;
         }
     };
@@ -570,41 +568,41 @@ namespace MiraiCP {
             return content;
         }
         /// 从MiraiCodeable类型初始化一个miraicode字符串
-        MiraiCode(MiraiCodeable* a) { // NOLINT(google-explicit-constructor)
+        MiraiCode(MiraiCodeable *a) { // NOLINT(google-explicit-constructor)
             content = a->toMiraiCode();
         }
         /// 从文本初始化一个miraicode字符串, 根据第二个参数决定是否转码, 默认不转码
         /// @attention 如果是传入文本MiraiCode，请勿转码，转码只是为了[mirai:xxx:<应该转码的部分>], 如果<应该转码>的部分里面含有'[]:,'内容，请调用Tools::escapeToMiraiCode转码
-        MiraiCode(const std::string& a, bool convert = false);
-        MiraiCode operator+(MiraiCodeable* a) {
-            return { content + a->toMiraiCode() };
+        MiraiCode(const std::string &a, bool convert = false);
+        MiraiCode operator+(MiraiCodeable *a) {
+            return {content + a->toMiraiCode()};
         }
-        MiraiCode operator+(const std::string& a) {
-            return { content + a };
+        MiraiCode operator+(const std::string &a) {
+            return {content + a};
         }
-        MiraiCode operator+(const MiraiCode& a) {
-            return { content + a.content };
+        MiraiCode operator+(const MiraiCode &a) {
+            return {content + a.content};
         }
-        MiraiCode operator+(MiraiCode* a) {
-            return { content + a->content };
+        MiraiCode operator+(MiraiCode *a) {
+            return {content + a->content};
         }
-        MiraiCode& operator=(const std::string& a) {
+        MiraiCode &operator=(const std::string &a) {
             this->content = a;
             return *this;
         }
-        MiraiCode plus(MiraiCodeable* a) {
-            return { content + a->toMiraiCode() };
+        MiraiCode plus(MiraiCodeable *a) {
+            return {content + a->toMiraiCode()};
         }
-        MiraiCode plus(const std::string& a) {
+        MiraiCode plus(const std::string &a) {
             return MiraiCode(a) + this;
         }
         /// 不执行转义，适用于已经被MiraiCode转义过的字符串
-        static MiraiCode MiraiCodeWithoutEscape(const std::string& a) {
-            return { a, false };
+        static MiraiCode MiraiCodeWithoutEscape(const std::string &a) {
+            return {a, false};
         }
         /// 不执行转义，因为MiraiCodeable的toMiraiCode已经转义过了
-        static MiraiCode MiraiCodeWithoutEscape(MiraiCodeable* a) {
-            return { a->toMiraiCode(), false };
+        static MiraiCode MiraiCodeWithoutEscape(MiraiCodeable *a) {
+            return {a->toMiraiCode(), false};
         }
     };
 } // namespace MiraiCP
@@ -640,7 +638,7 @@ namespace MiraiCP {
             /// @brief 是否启用
             bool enable = true;
             /// @brief 执行的操作，格式为lambda
-            Action action = [](const string& content, int level) {};
+            Action action = [](const string &content, int level) {};
         };
         Handler loggerhandler;
     private:
@@ -658,14 +656,14 @@ namespace MiraiCP {
             return a + constructString(val1...);
         }
         template<class... T>
-        static std::string constructString(MiraiCodeable& val, T... val1) {
+        static std::string constructString(MiraiCodeable &val, T... val1) {
             return val.toMiraiCode() + constructString(val1...);
         }
     protected:
         /// @brief 日志底层实现封装
         /// @param log 日志内容
         /// @param level 日志等级
-        virtual void log_interface(const string& log, int level) = 0;
+        virtual void log_interface(const string &log, int level) = 0;
     public:
         ///发送普通(info级日志)
         template<class... T>
@@ -702,7 +700,7 @@ namespace MiraiCP {
         /// @brief 日志底层实现封装
         /// @param content 日志内容
         /// @param level 日志等级
-        void log_interface(const std::string& content, int level) override;
+        void log_interface(const std::string &content, int level) override;
     public:
         static Logger logger;
     };
@@ -711,9 +709,9 @@ namespace MiraiCP {
     public:
         QQID id;
     protected:
-        void log_interface(const std::string& content, int level) override;
+        void log_interface(const std::string &content, int level) override;
     public:
-        IdLogger(QQID id, Logger* l) : id(id) {
+        IdLogger(QQID id, Logger *l) : id(id) {
             this->loggerhandler = l->loggerhandler;
         }
     };
@@ -725,7 +723,7 @@ namespace MiraiCP {
     class CPPPlugin {
     public:
         // for api-compatible
-        ShouldNotUse("请改为初始化静态常量 CPPPlugin::config") explicit CPPPlugin(const PluginConfig& c) {
+        ShouldNotUse("请改为初始化静态常量 CPPPlugin::config") explicit CPPPlugin(const PluginConfig &c) {
             // 不可覆盖原本的config，这里什么都不做
         }
         explicit CPPPlugin() = default;
@@ -735,7 +733,7 @@ namespace MiraiCP {
         const static PluginConfig config;
         /// @brief 插件级logger
         /// @deprecated use Logger::logger instead
-        [[deprecated("Use Logger::logger instead")]] static Logger* pluginLogger;
+        [[deprecated("Use Logger::logger instead")]] static Logger *pluginLogger;
         static std::unique_ptr<CPPPlugin> plugin;
     public:
         /// 插件启用时调用一次
@@ -775,7 +773,7 @@ namespace MiraiCP {
         ~MiraiCPExceptionBase() override = default;
     public:
         /// 异常信息
-        const char* what() const noexcept override { return re.c_str(); }
+        const char *what() const noexcept override { return re.c_str(); }
         /// 返回std::string的异常信息
         string getError() const { return re; }
         /// 实际抛出方法
@@ -817,21 +815,21 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class UploadException : public MiraiCPExceptionCRTP<UploadException> {
     public:
-        explicit UploadException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("上传(图片/文件)异常" + text, std::move(_filename), _lineNum) {}
+        explicit UploadException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("上传(图片/文件)异常" + text, std::move(_filename), _lineNum) {}
         static std::string exceptionType() { return "UploadException"; }
     };
     /// 通常为Mirai返回
     /// @see MiraiCPExceptionBase
     class IllegalStateException : public MiraiCPExceptionCRTP<IllegalStateException> {
     public:
-        explicit IllegalStateException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("状态异常:" + text, std::move(_filename), _lineNum) {}
+        explicit IllegalStateException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("状态异常:" + text, std::move(_filename), _lineNum) {}
         static std::string exceptionType() { return "IllegalStateException"; }
     };
     /// 内部异常, 通常为json读写问题
     /// @see MiraiCPExceptionBase
     class APIException : public MiraiCPExceptionCRTP<APIException> {
     public:
-        explicit APIException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("MiraiCP内部无法预料的错误:" + text, std::move(_filename), _lineNum) {}
+        explicit APIException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("MiraiCP内部无法预料的错误:" + text, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "APIException"; }
     };
     /// 机器人操作异常
@@ -839,7 +837,7 @@ namespace MiraiCP {
     class BotException : public MiraiCPExceptionCRTP<BotException> {
     public:
         explicit BotException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("没有权限执行该操作", std::move(_filename), _lineNum) {}
-        explicit BotException(const string& d, string _filename, int _lineNum) : MiraiCPExceptionCRTP(d, std::move(_filename), _lineNum) {}
+        explicit BotException(const string &d, string _filename, int _lineNum) : MiraiCPExceptionCRTP(d, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "BotException"; }
     };
     /// 被禁言异常, 通常发生于发送信息
@@ -856,7 +854,7 @@ namespace MiraiCP {
     class MuteException : public MiraiCPExceptionCRTP<MuteException> {
     public:
         /*
-        *	 禁言时间超出0s~30d
+        *    禁言时间超出0s~30d
         */
         MuteException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("禁言时长不在0s~30d中间", std::move(_filename), _lineNum) {}
         static string exceptionType() { return "MuteException"; }
@@ -873,22 +871,22 @@ namespace MiraiCP {
         MemberExceptionType type = OtherType;
         /*
         *   "1" - 找不到群
-        *	"2" - 找不到群成员
+        *   "2" - 找不到群成员
         */
         explicit MemberException(int _type, string _filename, int _lineNum) : MiraiCPExceptionCRTP(
-            [&]() -> string {
-                type = MemberExceptionType(_type);
-                switch (type) {
-                case NoSuchGroup:
-                    return "找不到群";
-                case NoSuchMember:
-                    return "找不到群成员";
-                default:
-                    return "";
-                }
-            }(),
-                std::move(_filename), _lineNum) {}
-            static string exceptionType() { return "MemberException"; }
+                                                                                      [&]() -> string {
+                                                                                          type = MemberExceptionType(_type);
+                                                                                          switch (type) {
+                                                                                              case NoSuchGroup:
+                                                                                                  return "找不到群";
+                                                                                              case NoSuchMember:
+                                                                                                  return "找不到群成员";
+                                                                                              default:
+                                                                                                  return "";
+                                                                                          }
+                                                                                      }(),
+                                                                                      std::move(_filename), _lineNum) {}
+        static string exceptionType() { return "MemberException"; }
     };
     /// 获取群成员错误
     /// @see MiraiCPExceptionBase
@@ -918,14 +916,14 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class RemoteAssetException : public MiraiCPExceptionCRTP<RemoteAssetException> {
     public:
-        explicit RemoteAssetException(const string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
+        explicit RemoteAssetException(const string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "RemoteAssetException"; }
     };
     /// 参数错误
     /// @see MiraiCPExceptionBase
     class IllegalArgumentException : public MiraiCPExceptionCRTP<IllegalArgumentException> {
     public:
-        explicit IllegalArgumentException(const string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {
+        explicit IllegalArgumentException(const string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {
         }
         static string exceptionType() { return "IllegalArgumentException"; }
     };
@@ -933,14 +931,14 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class TimeOutException : public MiraiCPExceptionCRTP<TimeOutException> {
     public:
-        explicit TimeOutException(const std::string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
+        explicit TimeOutException(const std::string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "TimeOutException"; }
     };
     /// 事件被取消, 一般出现在发送消息时在preSendMessageEvent取消的时候抛出
     /// @see MiraiCPExceptionBase
     class EventCancelledException : public MiraiCPExceptionCRTP<EventCancelledException> {
     public:
-        explicit EventCancelledException(const string& msg, string _filename, int _lineNum) : MiraiCPExceptionCRTP(msg, std::move(_filename), _lineNum) {}
+        explicit EventCancelledException(const string &msg, string _filename, int _lineNum) : MiraiCPExceptionCRTP(msg, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "EventCancelledException"; }
     };
     /// 插件没有权限时抛出该异常
@@ -968,21 +966,21 @@ namespace MiraiCP {
         /// 抛出异常的线程 ID
         std::thread::id threadId;
     public:
-        explicit MiraiCPThreadException(const std::string& exception_content, std::thread::id threadId, string _filename, int _lineNum)
+        explicit MiraiCPThreadException(const std::string &exception_content, std::thread::id threadId, string _filename, int _lineNum)
             : MiraiCPExceptionCRTP(exception_content + " at threadId: " + getThreadIdStr(threadId), std::move(_filename), _lineNum),
-            threadId(threadId) {}
+              threadId(threadId) {}
     public:
         std::string getThreadIdStr() const { return getThreadIdStr(threadId); }
     public:
         static string exceptionType() { return "MiraiCPThreadException"; }
     private:
-        static std::string getThreadIdStr(const std::thread::id& id) {
+        static std::string getThreadIdStr(const std::thread::id &id) {
             std::stringstream ss;
             ss << id;
             return ss.str();
         }
     };
-    inline void ErrorHandle0(const std::string& name, int line, const std::string& re, const std::string& ErrorMsg = "") {
+    inline void ErrorHandle0(const std::string &name, int line, const std::string &re, const std::string &ErrorMsg = "") {
         if (re == "EF")
             throw FriendException(name, line);
         if (re == "EG")
@@ -1083,10 +1081,10 @@ namespace MiraiCP::KtOperation {
      * @return 返回数据
      */
     std::string ktOperation(
-        operation_set type,
-        nlohmann::json data,
-        bool catchErr = true,
-        const std::string& errorInfo = "");
+            operation_set type,
+            nlohmann::json data,
+            bool catchErr = true,
+            const std::string &errorInfo = "");
 } // namespace MiraiCP::KtOperation
 #endif //MIRAICP_PRO_KTOPERATION_H
 // #include "Logger.h"
@@ -1119,7 +1117,7 @@ namespace MiraiCP {
             bool preFixOption = false;
         };
         virtual IRawCommand::Config config() = 0;
-        virtual void onCommand(std::optional<Contact>, const Bot&, const MessageChain&) = 0;
+        virtual void onCommand(std::optional<Contact>, const Bot &, const MessageChain &) = 0;
         IRawCommand() = default;
         virtual ~IRawCommand() = default;
     };
@@ -1128,7 +1126,7 @@ namespace MiraiCP {
         CommandManager() = default;
         std::vector<std::shared_ptr<IRawCommand>> commandList;
     public:
-        std::shared_ptr<IRawCommand>& operator[](const int& index) { return commandList[index]; }
+        std::shared_ptr<IRawCommand> &operator[](const int &index) { return commandList[index]; }
         /*!
          * @brief 注册一条指令
          * @param command 指令
@@ -1202,16 +1200,16 @@ namespace MiraiCP {
         MessageSource() = default;
         /// @deprecated 用Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMiraiCode(MiraiCodeable* msg, QQID groupid = 0,
-                void* env = nullptr) const = delete;
+                quoteAndSendMiraiCode(MiraiCodeable *msg, QQID groupid = 0,
+                                      void *env = nullptr) const = delete;
         /// @deprecated use Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMsg(const std::string& c, QQID groupid = 0,
-                void* = nullptr) const = delete;
+                quoteAndSendMsg(const std::string &c, QQID groupid = 0,
+                                void * = nullptr) const = delete;
         /// @deprecated use Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMiraiCode(const std::string& c, QQID groupid = 0,
-                void* = nullptr) const = delete;
+                quoteAndSendMiraiCode(const std::string &c, QQID groupid = 0,
+                                      void * = nullptr) const = delete;
         /*!
          * @brief 构建消息源
          * @param ids
@@ -1226,11 +1224,11 @@ namespace MiraiCP {
          * {"ids":"", "internalids":""}
          * @endcode
          */
-        static MessageSource deserializeFromString(const std::string& source);
+        static MessageSource deserializeFromString(const std::string &source);
         std::string serializeToString() const;
         /// @brief 撤回该信息
         void recall() const;
-        bool operator==(const MessageSource& ms) const {
+        bool operator==(const MessageSource &ms) const {
             return this->ids == ms.ids && this->internalids == ms.internalids;
         }
     };
@@ -1267,14 +1265,14 @@ namespace MiraiCP {
         /// @param content 内容
         /// @param prefix 前缀, 默认为`:`, 第二个冒号部分的内容, 目前在serviceMesage有使用
         SingleMessage(int type, std::string content, std::string prefix = ":") : type(type),
-            content(std::move(content)),
-            prefix(std::move(prefix)) {}
+                                                                                 content(std::move(content)),
+                                                                                 prefix(std::move(prefix)) {}
         virtual ~SingleMessage() = default;
     public:
         /// @brief 找对应类型的index key
         /// @param value 类型名
         /// @return 如果没找到返回-1
-        static int getKey(const std::string& value);
+        static int getKey(const std::string &value);
     public:
         virtual nlohmann::json toJson() const {
             nlohmann::json re;
@@ -1284,25 +1282,25 @@ namespace MiraiCP {
         }
         std::string toMiraiCode() const override;
     public:
-        bool operator==(const SingleMessage& m) const {
+        bool operator==(const SingleMessage &m) const {
             return this->type == m.type && this->toMiraiCode() == m.toMiraiCode();
         }
-        bool operator==(SingleMessage* m) const {
+        bool operator==(SingleMessage *m) const {
             return this->type == m->type && this->toMiraiCode() == m->toMiraiCode();
         }
     };
     /// 纯文本信息
     class PlainText : public SingleMessage {
     public:
-        explicit PlainText(const SingleMessage& sg);
+        explicit PlainText(const SingleMessage &sg);
         template<typename T>
-        explicit PlainText(const T& a) : SingleMessage(PlainText::type(), ([&a]() -> std::string {
-            std::stringstream sst;
-            sst << a;
-            return sst.str();
-            })()) {}
-            PlainText(PlainText&& _o) noexcept : SingleMessage(PlainText::type(), std::move(_o.content)) {}
-            PlainText(const PlainText& _o) : SingleMessage(PlainText::type(), _o.content) {}
+        explicit PlainText(const T &a) : SingleMessage(PlainText::type(), ([&a]() -> std::string {
+                                                           std::stringstream sst;
+                                                           sst << a;
+                                                           return sst.str();
+                                                       })()) {}
+        PlainText(PlainText &&_o) noexcept : SingleMessage(PlainText::type(), std::move(_o.content)) {}
+        PlainText(const PlainText &_o) : SingleMessage(PlainText::type(), _o.content) {}
     public:
         static int type() { return 0; }
     public:
@@ -1310,7 +1308,7 @@ namespace MiraiCP {
             return content;
         }
         nlohmann::json toJson() const override;
-        bool operator==(const PlainText& p) const {
+        bool operator==(const PlainText &p) const {
             return this->content == p.content;
         }
     };
@@ -1320,12 +1318,12 @@ namespace MiraiCP {
         static int type() { return 1; }
         QQID target;
         nlohmann::json toJson() const override;
-        explicit At(const SingleMessage& sg);
-        explicit At(QQID a) : SingleMessage(At::type(), std::to_string(a)), target(a) {};
+        explicit At(const SingleMessage &sg);
+        explicit At(QQID a) : SingleMessage(At::type(), std::to_string(a)), target(a){};
         std::string toMiraiCode() const override {
             return "[mirai:at:" + std::to_string(this->target) + "] "; // 后面有个空格
         }
-        bool operator==(const At& a) const {
+        bool operator==(const At &a) const {
             return this->target == a.target;
         }
     };
@@ -1384,14 +1382,14 @@ namespace MiraiCP {
         * @detail 图片miraiCode格式例子, `[mirai:image:{图片id}.jpg]`
         * 可以用这个正则表达式找出id `\\[mirai:image:(.*?)\\]`
         */
-        explicit Image(const std::string& imageId, size_t size = 0, int width = 0, int height = 0, int type = 5) : SingleMessage(Image::type(), imageId) {
+        explicit Image(const std::string &imageId, size_t size = 0, int width = 0, int height = 0, int type = 5) : SingleMessage(Image::type(), imageId) {
             this->id = imageId;
             this->size = size;
             this->width = width;
             this->height = height;
             this->imageType = type;
         }
-        explicit Image(const SingleMessage& sg);
+        explicit Image(const SingleMessage &sg);
         /// 刷新信息(获取图片下载Url,md5, size)
         void refreshInfo();
         /// 取图片Mirai码
@@ -1399,8 +1397,8 @@ namespace MiraiCP {
             return "[mirai:image:" + this->id + "]";
         }
         nlohmann::json toJson() const override;
-        static Image deserialize(const std::string&);
-        bool operator==(const Image& i) const {
+        static Image deserialize(const std::string &);
+        bool operator==(const Image &i) const {
             return this->id == i.id;
         }
     };
@@ -1411,14 +1409,14 @@ namespace MiraiCP {
         std::string toMiraiCode() const override {
             return "[mirai:flash:" + this->id + "]";
         }
-        explicit FlashImage(const std::string& imageId, size_t size = 0, int width = 0, int height = 0, int type = 0) : Image(imageId, size, width, height, type) {
+        explicit FlashImage(const std::string &imageId, size_t size = 0, int width = 0, int height = 0, int type = 0) : Image(imageId, size, width, height, type) {
             this->SingleMessage::type = 8;
         }
-        explicit FlashImage(const SingleMessage& sg) : Image(sg) {}
-        explicit FlashImage(const Image& img) : Image(img) {}
+        explicit FlashImage(const SingleMessage &sg) : Image(sg) {}
+        explicit FlashImage(const Image &img) : Image(img) {}
         nlohmann::json toJson() const override;
-        static FlashImage deserialize(const std::string&);
-        bool operator==(const FlashImage& i) const {
+        static FlashImage deserialize(const std::string &);
+        bool operator==(const FlashImage &i) const {
             return this->id == i.id;
         }
         /// 转换到普通图片
@@ -1435,11 +1433,11 @@ namespace MiraiCP {
         /// @brief 使用纯文本构造，推荐使用其他结构体方法构造
         /// @param content 构造文本
         explicit LightApp(std::string content) : SingleMessage(LightApp::type(), std::move(content)) {}
-        explicit LightApp(const SingleMessage& sg);
+        explicit LightApp(const SingleMessage &sg);
         nlohmann::json toJson() const override;
         /// 返回miraicode
         std::string toMiraiCode() const override;
-        bool operator==(const LightApp& la) const {
+        bool operator==(const LightApp &la) const {
             return this->content == la.content;
         }
     };
@@ -1455,19 +1453,19 @@ namespace MiraiCP {
         /// @param id 在xml内容前面的id (不包括逗号)
         /// @param a xml内容 (不需要事先转码到miraiCode)
         explicit ServiceMessage(int id, std::string a) : SingleMessage(ServiceMessage::type(), std::move(a),
-            ":" + std::to_string(id) + ','),
-            id(id) {}
-        explicit ServiceMessage(const SingleMessage& sg);
-        explicit ServiceMessage(const URLSharer& a) : SingleMessage(5,
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?><msg templateID=\"12345\" action=\"web\" brief=\"" +
-            a.brief + "\" serviceID=\"1\" url=\"" + a.url +
-            "\"><item layout=\"2\"><picture cover=\"" +
-            a.cover + "\"/><title>" + a.title +
-            "</title><summary>" + a.summary +
-            "</summary></item><source/></msg>",
-            ":1,"),
-            id(1) {}
-        bool operator==(const ServiceMessage& s) const {
+                                                                       ":" + std::to_string(id) + ','),
+                                                         id(id) {}
+        explicit ServiceMessage(const SingleMessage &sg);
+        explicit ServiceMessage(const URLSharer &a) : SingleMessage(5,
+                                                                    "<?xml version=\"1.0\" encoding=\"utf-8\"?><msg templateID=\"12345\" action=\"web\" brief=\"" +
+                                                                            a.brief + "\" serviceID=\"1\" url=\"" + a.url +
+                                                                            "\"><item layout=\"2\"><picture cover=\"" +
+                                                                            a.cover + "\"/><title>" + a.title +
+                                                                            "</title><summary>" + a.summary +
+                                                                            "</summary></item><source/></msg>",
+                                                                    ":1,"),
+                                                      id(1) {}
+        bool operator==(const ServiceMessage &s) const {
             return this->content == s.content;
         }
     };
@@ -1481,9 +1479,9 @@ namespace MiraiCP {
         }
         /// 引用信息的MessageSource
         MessageSource source;
-        explicit QuoteReply(const SingleMessage& m);
-        explicit QuoteReply(MessageSource source) : SingleMessage(QuoteReply::type(), source.serializeToString()), source(std::move(source)) {};
-        bool operator==(const QuoteReply& qr) const {
+        explicit QuoteReply(const SingleMessage &m);
+        explicit QuoteReply(MessageSource source) : SingleMessage(QuoteReply::type(), source.serializeToString()), source(std::move(source)){};
+        bool operator==(const QuoteReply &qr) const {
             return this->source == qr.source;
         }
     };
@@ -1508,10 +1506,10 @@ namespace MiraiCP {
             return "";
         }
         explicit OnlineAudio(std::string f, std::array<uint8_t, 16> md5, int size, int codec, int length,
-            std::string url) : SingleMessage(OnlineAudio::type(), ""),
-            filename(std::move(f)), md5(md5), size(size), codec(codec),
-            length(length), url(std::move(url)) {};
-        bool operator==(const OnlineAudio& oa) const {
+                             std::string url) : SingleMessage(OnlineAudio::type(), ""),
+                                                filename(std::move(f)), md5(md5), size(size), codec(codec),
+                                                length(length), url(std::move(url)){};
+        bool operator==(const OnlineAudio &oa) const {
             return this->md5 == oa.md5;
         }
     };
@@ -1565,7 +1563,7 @@ namespace MiraiCP {
         std::optional<Finfo> finfo;
         std::string serializeToString();
         RemoteFile plus(unsigned int ii);
-        static RemoteFile deserializeFromString(const std::string& source);
+        static RemoteFile deserializeFromString(const std::string &source);
         /*!
          * @brief 构造远程(群)文件
          * @param i ids
@@ -1576,7 +1574,7 @@ namespace MiraiCP {
          * @param d dinfo
          * @param f finfo
          */
-        explicit RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s, std::string p, struct Dinfo d, struct Finfo f);
+        explicit RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s, std::string p, struct Dinfo d, struct Finfo f);
         /*!
          * @brief 构造远程(群)文件
          * @param i ids
@@ -1587,12 +1585,12 @@ namespace MiraiCP {
          * @param d dinfo
          * @param f finfo
          */
-        explicit RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s);
+        explicit RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s);
         /// 上传后会自动发送
         ShouldNotUse("Cannot send manually, use Group.sendFile") std::string toMiraiCode() const override {
             return "";
         }
-        bool operator==(const RemoteFile& rf) const {
+        bool operator==(const RemoteFile &rf) const {
             return this->id == rf.id;
         }
     };
@@ -1607,7 +1605,7 @@ namespace MiraiCP {
             return "[mirai:face:" + std::to_string(id) + "]";
         }
         explicit Face(int id) : SingleMessage(Face::type(), std::to_string(id)), id(id) {}
-        bool operator==(const Face& f) const {
+        bool operator==(const Face &f) const {
             return this->id == f.id;
         }
     };
@@ -1632,7 +1630,7 @@ namespace MiraiCP {
         std::string toMiraiCode() const override {
             return "[mirai:musicshare:" + appName + "," + title + "," + summary + "," + jumpUrl + "," + picUrl + "," + musicUrl + "," + brief + "]";
         }
-        MusicShare(const std::string& appName, const std::string& title, const std::string& summary, const std::string& jumpUrl, const std::string& picUrl, const std::string& musicUrl, const std::string& brief) : SingleMessage(MusicShare::type(), ""), appName(appName), title(title), summary(summary), jumpUrl(jumpUrl), picUrl(picUrl), musicUrl(musicUrl), brief(brief) {}
+        MusicShare(const std::string &appName, const std::string &title, const std::string &summary, const std::string &jumpUrl, const std::string &picUrl, const std::string &musicUrl, const std::string &brief) : SingleMessage(MusicShare::type(), ""), appName(appName), title(title), summary(summary), jumpUrl(jumpUrl), picUrl(picUrl), musicUrl(musicUrl), brief(brief) {}
     };
     class MarketFace : public SingleMessage {
     public:
@@ -1643,7 +1641,7 @@ namespace MiraiCP {
         }
         std::array<uint8_t, 16> faceId;
         explicit MarketFace(std::array<uint8_t, 16> id) : SingleMessage(MarketFace::type(), ""), faceId(id) {}
-        bool operator==(const MarketFace& mf) const {
+        bool operator==(const MarketFace &mf) const {
             return this->faceId == mf.faceId;
         }
     };
@@ -1656,9 +1654,9 @@ namespace MiraiCP {
         ShouldNotUse("不支持直接发送UnSupportMessage") std::string toMiraiCode() const override {
             return "";
         }
-        explicit UnSupportMessage(const SingleMessage& s) : SingleMessage(s) {};
-        explicit UnSupportMessage(const std::string& content) : SingleMessage(UnSupportMessage::type(), content) {}
-        bool operator==(const UnSupportMessage& m) const {
+        explicit UnSupportMessage(const SingleMessage &s) : SingleMessage(s){};
+        explicit UnSupportMessage(const std::string &content) : SingleMessage(UnSupportMessage::type(), content) {}
+        bool operator==(const UnSupportMessage &m) const {
             return this->content == m.content;
         }
     };
@@ -1672,7 +1670,7 @@ namespace MiraiCP {
             // std::shared_ptr<SingleMessage> content;
         public: // constructor
             template<class T>
-            explicit Message(const T& _singleMessage) {
+            explicit Message(const T &_singleMessage) {
                 static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
                 reset(new T(_singleMessage));
             }
@@ -1690,7 +1688,7 @@ namespace MiraiCP {
                 static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的派生类");
                 if (T::type() != this->type())
                     throw IllegalArgumentException("cannot convert from " + SingleMessage::messageType[this->type()] + " to " + SingleMessage::messageType[T::type()], MIRAICP_EXCEPTION_WHERE);
-                T* re = static_cast<T*>(std::shared_ptr<SingleMessage>::get());
+                T *re = static_cast<T *>(std::shared_ptr<SingleMessage>::get());
                 if (re == nullptr)
                     throw IllegalArgumentException("cannot convert from " + SingleMessage::messageType[this->type()] + " to " + SingleMessage::messageType[T::type()], MIRAICP_EXCEPTION_WHERE);
                 return *re;
@@ -1698,10 +1696,10 @@ namespace MiraiCP {
             std::string toMiraiCode() const {
                 return (*this)->toMiraiCode();
             }
-            bool operator==(const Message& m) const {
+            bool operator==(const Message &m) const {
                 return (*this)->type == m->type && (*this)->toMiraiCode() == m->toMiraiCode();
             }
-            bool operator!=(const Message& m) const {
+            bool operator!=(const Message &m) const {
                 return (*this)->type != m->type || (*this)->toMiraiCode() != m->toMiraiCode();
             }
         };
@@ -1714,8 +1712,8 @@ namespace MiraiCP {
         /// 如果由MiraiCP构造(incoming)就会存在，否则则不存在
         std::optional<MessageSource> source = std::nullopt;
     public:
-        MessageChain(const MessageChain& _o) = default;
-        MessageChain(MessageChain&& _o) = default;
+        MessageChain(const MessageChain &_o) = default;
+        MessageChain(MessageChain &&_o) = default;
         /// incoming构造器
         template<class... T>
         explicit MessageChain(MessageSource ms, T... args) : source(std::move(ms)) {
@@ -1735,18 +1733,18 @@ namespace MiraiCP {
         };
         /// outcoming 构造器
         template<class T>
-        explicit MessageChain(const T& msg) {
+        explicit MessageChain(const T &msg) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage子类");
             emplace_back(msg);
         };
     public:
-        [[deprecated("MessageChain继承自std::vector<Message>，无需获取内部vector")]] const std::vector<Message>& vector() const {
+        [[deprecated("MessageChain继承自std::vector<Message>，无需获取内部vector")]] const std::vector<Message> &vector() const {
             return *static_cast<const std::vector<Message> *>(this);
         }
         std::string toMiraiCode() const override;
         std::vector<std::string> toMiraiCodeVector() const {
             std::vector<std::string> tmp;
-            for (auto&& a : *this)
+            for (auto &&a: *this)
                 tmp.emplace_back(a->toMiraiCode());
             return tmp;
         }
@@ -1754,11 +1752,11 @@ namespace MiraiCP {
         /// @tparam T 任意的SingleMessage的子类
         /// @param a 添加的值
         template<class T>
-        void add(const T& a) {
+        void add(const T &a) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只接受SingleMessage的子类");
             emplace_back(a);
         }
-        void add(const MessageSource& val) {
+        void add(const MessageSource &val) {
             source = val;
         }
         /// 筛选出某种类型的消息
@@ -1766,7 +1764,7 @@ namespace MiraiCP {
         std::vector<T> filter() {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             std::vector<T> re;
-            for (auto&& a : *this) {
+            for (auto &&a: *this) {
                 if (a.type() == T::type())
                     re.emplace_back(a.get<T>());
             }
@@ -1774,10 +1772,10 @@ namespace MiraiCP {
         }
         /// 自定义筛选器
         template<class T>
-        std::vector<T> filter(const std::function<bool(Message)>& func) {
+        std::vector<T> filter(const std::function<bool(Message)> &func) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             std::vector<T> re;
-            for (auto&& a : *this) {
+            for (auto &&a: *this) {
                 if (func(a))
                     re.push_back(a.get<T>());
             }
@@ -1786,33 +1784,33 @@ namespace MiraiCP {
         /// 找出第一个指定的type的消息，消息可能不存在
         template<class T>
         std::optional<T> first() {
-            for (auto&& a : *this)
+            for (auto &&a: *this)
                 if (a.type() == T::type())
                     return a.get<T>();
             return std::nullopt;
         }
         template<class T>
-        [[nodiscard]] MessageChain plus(const T& a) const {
+        [[nodiscard]] MessageChain plus(const T &a) const {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             MessageChain tmp(*this);
             tmp.emplace_back(a);
             return tmp;
         }
-        [[nodiscard]] MessageChain plus(const MessageChain& mc) const {
+        [[nodiscard]] MessageChain plus(const MessageChain &mc) const {
             MessageChain tmp(*this);
             tmp.insert(tmp.end(), mc.begin(), mc.end());
             return tmp;
         }
-        [[nodiscard]] MessageChain plus(const MessageSource& ms) const {
+        [[nodiscard]] MessageChain plus(const MessageSource &ms) const {
             MessageChain tmp(*this);
             tmp.source = ms;
             return tmp;
         }
         template<class T>
-        MessageChain operator+(const T& msg) const {
+        MessageChain operator+(const T &msg) const {
             return this->plus(msg);
         }
-        bool operator==(const MessageChain& mc) const {
+        bool operator==(const MessageChain &mc) const {
             if (size() != mc.size())
                 return false;
             for (size_t i = 0; i < size(); i++) {
@@ -1821,7 +1819,7 @@ namespace MiraiCP {
             }
             return true;
         }
-        bool operator!=(const MessageChain& mc) const {
+        bool operator!=(const MessageChain &mc) const {
             return !(*this == mc);
         }
         bool empty() const {
@@ -1838,34 +1836,34 @@ namespace MiraiCP {
         /// @deprecated use Contact.quoteAndSend or `this->quoteAndSend1(s, groupid, env)`, since v2.8.1
         template<class T>
         ShouldNotUse("use Contact.quoteAndSend") MessageSource
-            quoteAndSendMessage(T s, QQID groupid = -1, void* env = nullptr) = delete;
+                quoteAndSendMessage(T s, QQID groupid = -1, void *env = nullptr) = delete;
     public: // static functions
         /// @brief 找到miraiCode结尾的`]`
         /// @param s 文本
         /// @param start 开始位置
         /// @return 如果不存在返回-1, 存在则返回index
-        static size_t findEnd(const std::string& s, size_t start) {
+        static size_t findEnd(const std::string &s, size_t start) {
             size_t pos = start;
             while (pos < s.length()) {
                 switch (s[pos]) {
-                case '\\':
-                    pos += 2;
-                    continue;
-                case ']':
-                    return pos;
+                    case '\\':
+                        pos += 2;
+                        continue;
+                    case ']':
+                        return pos;
                 }
                 pos++;
             }
             return -1;
         }
         /// 从miraicode string构建MessageChain
-        static MessageChain deserializationFromMiraiCode(const std::string& m);
-        static MessageChain deserializationFromMessageSourceJson(const std::string& msg, bool origin = true) {
+        static MessageChain deserializationFromMiraiCode(const std::string &m);
+        static MessageChain deserializationFromMessageSourceJson(const std::string &msg, bool origin = true) {
             return deserializationFromMessageSourceJson(nlohmann::json::parse(msg), origin);
         }
         /// 从MessageSource json中构建MessageChain, 常用于Incoming message
         /// @attention 本方法并不会自动附加MessageSource到MessageChain, 需要用.plus方法自行附加
-        static MessageChain deserializationFromMessageSourceJson(const nlohmann::json& j, bool origin = true);
+        static MessageChain deserializationFromMessageSourceJson(const nlohmann::json &j, bool origin = true);
     private: // private methods
         void constructMessages() {}
         template<class T1, class... T2>
@@ -1875,17 +1873,17 @@ namespace MiraiCP {
             constructMessages(args...);
         }
         template<class... T2>
-        void constructMessages(const std::string& h, T2... args) {
+        void constructMessages(const std::string &h, T2... args) {
             emplace_back(PlainText(h));
             constructMessages(args...);
         }
         template<class... T2>
-        void constructMessages(const char* h, T2... args) {
+        void constructMessages(const char *h, T2... args) {
             emplace_back(PlainText(h));
             constructMessages(args...);
         }
         template<class... T>
-        void constructMessages(const MessageChain& mc, T... args) {
+        void constructMessages(const MessageChain &mc, T... args) {
             insert(end(), mc.begin(), mc.end());
             constructMessages(args...);
         }
@@ -1898,7 +1896,7 @@ namespace MiraiCP {
         MessageSource quoteAndSend1(std::string s, QQID groupid) {
             return this->quoteAndSend0(std::move(s), groupid);
         }
-        MessageSource quoteAndSend1(const MessageChain& mc, QQID groupid) {
+        MessageSource quoteAndSend1(const MessageChain &mc, QQID groupid) {
             return this->quoteAndSend0(mc.toMiraiCode(), groupid);
         }
     };
@@ -1929,7 +1927,7 @@ namespace MiraiCP {
         bool _anonymous = false;
     protected:
         /// 发送语音
-        MessageSource sendVoice0(const std::string& path);
+        MessageSource sendVoice0(const std::string &path);
     public:
         // constructors
         /*!
@@ -1955,7 +1953,7 @@ namespace MiraiCP {
          *  @see Contact::name()
          * @param botid 对应的botid
          */
-        explicit Contact(int type, QQID id, QQID gid, const std::string& name, QQID botid, bool anonymous = false) {
+        explicit Contact(int type, QQID id, QQID gid, const std::string &name, QQID botid, bool anonymous = false) {
             if (type < 0 || type > 4) throw APIException("Contact::type incorrect", MIRAICP_EXCEPTION_WHERE);
             this->_type = static_cast<contactType>(type);
             this->_id = id;
@@ -1968,7 +1966,7 @@ namespace MiraiCP {
         //        }
         // destructor
         virtual ~Contact() = default;
-        bool operator==(const Contact& c) const {
+        bool operator==(const Contact &c) const {
             return this->id() == c.id();
         }
         /// @brief 当前对象类型
@@ -2018,13 +2016,13 @@ namespace MiraiCP {
         /// @see Contact::serializationToString()
         /// @param source 序列化后的文本
         /// @throw APIException
-        static Contact deserialize(const std::string& source);
+        static Contact deserialize(const std::string &source);
         static Contact deserialize(nlohmann::json source);
     public:
         /// @deprecated since v2.8.1, use `Contact::deserialize(source)`
-        ShouldNotUse("use deserialize") static Contact deserializationFromString(const std::string& source) = delete;
+        ShouldNotUse("use deserialize") static Contact deserializationFromString(const std::string &source) = delete;
         /// @deprecated since v2.8.1, use `sendMessage(MiraiCode)` or `sendMsg0(msg.toMiraiCode(), retryTime, true, env)`
-        ShouldNotUse("Use sendMessage") MessageSource sendMiraiCode(const MiraiCode& msg, int retryTime = 3, void* env = nullptr) const = delete;
+        ShouldNotUse("Use sendMessage") MessageSource sendMiraiCode(const MiraiCode &msg, int retryTime = 3, void *env = nullptr) const = delete;
         /*!
          * @brief 回复并发送
          * @param s 内容
@@ -2081,11 +2079,11 @@ namespace MiraiCP {
             return this->send1(msg, retryTime);
         }
         /// @deprecated since v2.8.1, use `sendMessage(msg)` or `sendMsg0(msg, retryTime, false, env)`
-        ShouldNotUse("Use sendMessage") MessageSource sendMsg(const std::string& msg, int retryTime = 3, void* env = nullptr) = delete;
+        ShouldNotUse("Use sendMessage") MessageSource sendMsg(const std::string &msg, int retryTime = 3, void *env = nullptr) = delete;
         /// @deprecated since v2.8.1, use `sendMessage(MiraiCode)` or `sendMsg0(msg.toMiraiCode(), retryTime, false, env);`
-        ShouldNotUse("Use sendMessage") MessageSource sendMsg(const MiraiCode& msg, int retryTime = 3, void* env = nullptr) = delete;
+        ShouldNotUse("Use sendMessage") MessageSource sendMsg(const MiraiCode &msg, int retryTime = 3, void *env = nullptr) = delete;
         /// @deprecated since v2.8.1, use `sendMessage(Tools::VectorToString(std::move(msg)))` or `sendMsg0(Tools::VectorToString(std::move(msg)), retryTime, false, env);`
-        ShouldNotUse("Use sendMessage") MessageSource sendMsg(std::vector<std::string> msg, int retryTime = 3, void* env = nullptr) = delete;
+        ShouldNotUse("Use sendMessage") MessageSource sendMsg(std::vector<std::string> msg, int retryTime = 3, void *env = nullptr) = delete;
         /*!
         * @brief 上传本地图片，务必要用绝对路径
         * 由于mirai要区分图片发送对象，所以使用本函数上传的图片只能发到群
@@ -2094,8 +2092,8 @@ namespace MiraiCP {
         * -可能抛出UploadException异常代表路径无效或大小大于30MB
         * -可能抛出MemberException找不到群或群成员
         */
-        Image uploadImg(const std::string& path) const;
-        FlashImage uploadFlashImg(const std::string& path) const;
+        Image uploadImg(const std::string &path) const;
+        FlashImage uploadFlashImg(const std::string &path) const;
         template<class T>
         T to() {
             static_assert(std::is_base_of_v<Contact, T>);
@@ -2104,7 +2102,7 @@ namespace MiraiCP {
     private: // private methods
         /// 发送纯文本信息
         /// @throw IllegalArgumentException, TimeOutException, BotIsBeingMutedException
-        MessageSource sendMsg0(const std::string& msg, int retryTime, bool miraicode = false) const;
+        MessageSource sendMsg0(const std::string &msg, int retryTime, bool miraicode = false) const;
         template<class T>
         MessageSource send1(T msg, int retryTime) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的派生类");
@@ -2119,10 +2117,10 @@ namespace MiraiCP {
         MessageSource send1(std::string msg, int retryTime) {
             return sendMsg0(msg, retryTime, false);
         }
-        MessageSource send1(const char* msg, int retryTime) {
+        MessageSource send1(const char *msg, int retryTime) {
             return sendMsg0(std::string(msg), retryTime, false);
         }
-        MessageSource quoteAndSend0(const std::string& msg, MessageSource ms);
+        MessageSource quoteAndSend0(const std::string &msg, MessageSource ms);
         template<class T>
         MessageSource quoteAndSend1(T s, MessageSource ms) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的派生类");
@@ -2173,7 +2171,7 @@ namespace MiraiCP {
          * @param botid 对应机器人id
          */
         explicit Friend(QQID friendid, QQID botid);
-        explicit Friend(const Contact& c) : Contact(c) {
+        explicit Friend(const Contact &c) : Contact(c) {
             if (c.type() != 1)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 1(friend)", MIRAICP_EXCEPTION_WHERE);
             refreshInfo();
@@ -2209,12 +2207,12 @@ namespace MiraiCP {
             /// 序列化到文本
             nlohmann::json serializeToJson();
             explicit AnnouncementParams(bool send2New = false, bool requireConfirm = false, bool pinned = false,
-                bool showEditCard = false, bool showPopup = false) : send2new(send2New),
-                requireConfirm(
-                    requireConfirm),
-                pinned(pinned),
-                showEditCard(showEditCard),
-                showPopup(showPopup) {}
+                                        bool showEditCard = false, bool showPopup = false) : send2new(send2New),
+                                                                                             requireConfirm(
+                                                                                                     requireConfirm),
+                                                                                             pinned(pinned),
+                                                                                             showEditCard(showEditCard),
+                                                                                             showPopup(showPopup) {}
         };
         /// 在线群公告
         class OnlineAnnouncement {
@@ -2241,14 +2239,14 @@ namespace MiraiCP {
             /// @throw BotException
             void deleteThis();
             /// 反序列化
-            static OnlineAnnouncement deserializeFromJson(const nlohmann::json&);
-            OnlineAnnouncement(const std::string& content, AnnouncementParams& params,
-                QQID groupid, QQID senderid, QQID botid,
-                long long int publicationTime, const std::string& fid, int confirmNum,
-                const std::string& imageid) : content(content), params(params), groupid(groupid),
-                senderid(senderid), botid(botid),
-                publicationTime(publicationTime),
-                fid(fid), confirmNum(confirmNum), imageid(imageid) {}
+            static OnlineAnnouncement deserializeFromJson(const nlohmann::json &);
+            OnlineAnnouncement(const std::string &content, AnnouncementParams &params,
+                               QQID groupid, QQID senderid, QQID botid,
+                               long long int publicationTime, const std::string &fid, int confirmNum,
+                               const std::string &imageid) : content(content), params(params), groupid(groupid),
+                                                             senderid(senderid), botid(botid),
+                                                             publicationTime(publicationTime),
+                                                             fid(fid), confirmNum(confirmNum), imageid(imageid) {}
         };
         /// 本地(未发送)群公告
         class OfflineAnnouncement {
@@ -2258,9 +2256,9 @@ namespace MiraiCP {
             /// 公告属性
             AnnouncementParams params;
             /// 发布群公告
-            Group::OnlineAnnouncement publishTo(const Group&);
-            OfflineAnnouncement(const std::string& content, AnnouncementParams params) : content(content),
-                params(params) {}
+            Group::OnlineAnnouncement publishTo(const Group &);
+            OfflineAnnouncement(const std::string &content, AnnouncementParams params) : content(content),
+                                                                                         params(params) {}
         };
         /**
          * @brief 群设置
@@ -2294,7 +2292,7 @@ namespace MiraiCP {
         /// @param botid 机器人id
         /// @doxygenEg{1007, group.cpp, 从群号构建群对象}
         Group(QQID groupid, QQID botid);
-        explicit Group(const Contact& c) : Contact(c) {
+        explicit Group(const Contact &c) : Contact(c) {
             if (c.type() != 2)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 2(group)", MIRAICP_EXCEPTION_WHERE);
             refreshInfo();
@@ -2332,9 +2330,9 @@ namespace MiraiCP {
         @attention 路径分隔符是 `/`
         @doxygenEg{1008, group.cpp, 发送群文件}
         */
-        RemoteFile sendFile(const std::string& path, const std::string& filepath);
+        RemoteFile sendFile(const std::string &path, const std::string &filepath);
         /// 发送语音
-        MessageSource sendVoice(const std::string& path) {
+        MessageSource sendVoice(const std::string &path) {
             return Contact::sendVoice0(path);
         }
         /*!
@@ -2345,15 +2343,15 @@ namespace MiraiCP {
         @see RemoteFile
         @doxygenEg{1009, group.cpp, 获取群文件}
         */
-        RemoteFile getFile(const std::string& path, const std::string& id = "");
+        RemoteFile getFile(const std::string &path, const std::string &id = "");
         /*!
          * @brief 取文件信息(根据id)
          * @param id 文件id
          * @return 文件
          * @detail 相当于从根目录开始遍历查找文件, 相当于getFile("/", id);
          */
-        RemoteFile getFileById(const std::string& id);
-        RemoteFile getFileByFile(const RemoteFile& file) {
+        RemoteFile getFileById(const std::string &id);
+        RemoteFile getFileByFile(const RemoteFile &file) {
             return getFileById(file.id);
         }
         /*!
@@ -2362,10 +2360,10 @@ namespace MiraiCP {
          * @return 返回值为一个vector容器, 每一项为short_info
          * @doxygenEg{1010, group.cpp, 获取群文件列表}
         */
-        std::vector<file_short_info> getFileList(const std::string& path);
+        std::vector<file_short_info> getFileList(const std::string &path);
         /// 取文件列表以字符串形式返回
         /// @param path 文件夹路径
-        std::string getFileListString(const std::string& path);
+        std::string getFileListString(const std::string &path);
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_GROUP_H
@@ -2396,7 +2394,7 @@ namespace MiraiCP {
         /// @param groupid 所在群号
         /// @param botid 机器人id
         explicit Member(QQID qqid, QQID groupid, QQID botid);
-        explicit Member(const Contact& c) : Contact(c) {
+        explicit Member(const Contact &c) : Contact(c) {
             if (c.type() != 3)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 3(member)", MIRAICP_EXCEPTION_WHERE);
             this->isAnonymous = this->_anonymous;
@@ -2407,7 +2405,7 @@ namespace MiraiCP {
         /// 重新获取(刷新)群成员信息
         void refreshInfo();
         /// 发送语音
-        MessageSource sendVoice(const std::string& path) {
+        MessageSource sendVoice(const std::string &path) {
             return Contact::sendVoice0(path);
         }
         /// 获取权限，会在构造时调用，请使用permission缓存变量
@@ -2426,7 +2424,7 @@ namespace MiraiCP {
         /*! 踢出这个群成员
         * @param reason - 原因
         */
-        void kick(const std::string& reason);
+        void kick(const std::string &reason);
         /// At一个群成员
         At at() {
             return At(this->id());
@@ -2495,13 +2493,13 @@ namespace MiraiCP {
     class MessageEvent {
     public:
         /// 获取当前聊天，可能是群，私聊，或群临时回话
-        virtual Contact* chat() = 0;
+        virtual Contact *chat() = 0;
         /// 获取当前聊天，可能是群，私聊，或群临时回话
-        virtual Contact* from() = 0;
-        virtual MessageChain* getMessageChain() = 0;
-        virtual const Contact* chat() const = 0;
-        virtual const Contact* from() const = 0;
-        virtual const MessageChain* getMessageChain() const = 0;
+        virtual Contact *from() = 0;
+        virtual MessageChain *getMessageChain() = 0;
+        virtual const Contact *chat() const = 0;
+        virtual const Contact *from() const = 0;
+        virtual const MessageChain *getMessageChain() const = 0;
     };
     /*!
      * @brief 群消息事件声明
@@ -2519,9 +2517,9 @@ namespace MiraiCP {
         Member sender;
         /// 信息
         MessageChain message;
-        GroupMessageEvent(QQID botid, const Group& group, const Member& sender,
-            MessageChain mc) : BotEvent(botid), group(group),
-            sender(sender), message(std::move(mc)) {};
+        GroupMessageEvent(QQID botid, const Group &group, const Member &sender,
+                          MessageChain mc) : BotEvent(botid), group(group),
+                                             sender(sender), message(std::move(mc)){};
         /*!
          * @brief 取群聊下一个消息(群聊与本事件一样)
          * @param time 超时时间限制, 单位为ms, 超时后抛出TimeOutException
@@ -2537,22 +2535,22 @@ namespace MiraiCP {
          */
         MessageChain senderNextMessage(long time = -1, bool halt = true) const;
     public:
-        Contact* chat() override {
+        Contact *chat() override {
             return &group;
         }
-        const Contact* chat() const override {
+        const Contact *chat() const override {
             return &group;
         }
-        Contact* from() override {
+        Contact *from() override {
             return &sender;
         }
-        const Contact* from() const override {
+        const Contact *from() const override {
             return &sender;
         }
-        MessageChain* getMessageChain() override {
+        MessageChain *getMessageChain() override {
             return &message;
         }
-        const MessageChain* getMessageChain() const override {
+        const MessageChain *getMessageChain() const override {
             return &message;
         }
     };
@@ -2578,7 +2576,7 @@ namespace MiraiCP {
          * @param messageSource 消息源
          */
         PrivateMessageEvent(QQID botid, Friend sender, MessageChain mc) : BotEvent(botid), sender(std::move(sender)),
-            message(std::move(mc)) {};
+                                                                          message(std::move(mc)){};
         /*!
          * @brief 取下一个消息(发送人和接收人和本事件一样)
          * @warning 如果两次发送信息间隔过短可能会漏过信息
@@ -2588,22 +2586,22 @@ namespace MiraiCP {
          */
         MessageChain nextMessage(long time = -1, bool halt = true) const;
     public:
-        Contact* chat() override {
+        Contact *chat() override {
             return &sender;
         }
-        const Contact* chat() const override {
+        const Contact *chat() const override {
             return &sender;
         }
-        Contact* from() override {
+        Contact *from() override {
             return &sender;
         }
-        const Contact* from() const override {
+        const Contact *from() const override {
             return &sender;
         }
-        MessageChain* getMessageChain() override {
+        MessageChain *getMessageChain() override {
             return &message;
         }
-        const MessageChain* getMessageChain() const override {
+        const MessageChain *getMessageChain() const override {
             return &message;
         }
     };
@@ -2624,7 +2622,7 @@ namespace MiraiCP {
         std::string groupName;
         /// 群号
         QQID groupid = 0;
-        static void operation0(const std::string& source, QQID botid, bool accept);
+        static void operation0(const std::string &source, QQID botid, bool accept);
         void reject() {
             GroupInviteEvent::operation0(this->source, this->bot.id, false);
         }
@@ -2640,10 +2638,10 @@ namespace MiraiCP {
          * @param groupName 群聊名称
          * @param groupid 群号
          */
-        GroupInviteEvent(QQID botid, const std::string& source, const std::string& inviterNick,
-            QQID inviterid, const std::string& groupName, QQID groupid)
+        GroupInviteEvent(QQID botid, const std::string &source, const std::string &inviterNick,
+                         QQID inviterid, const std::string &groupName, QQID groupid)
             : BotEvent(botid), source(source), inviterNick(inviterNick), inviterid(inviterid), groupName(groupName),
-            groupid(groupid) {}
+              groupid(groupid) {}
     };
     /// 好友申请事件声明
     class NewFriendRequestEvent : public BotEvent<NewFriendRequestEvent> {
@@ -2663,7 +2661,7 @@ namespace MiraiCP {
         std::string message;
         /// @brief 接受好友申请
         /// @param source 事件序列化信息
-        static void operation0(const std::string& source, QQID botid, bool accept, bool ban = false);
+        static void operation0(const std::string &source, QQID botid, bool accept, bool ban = false);
         /// @brief 拒绝好友申请
         /// @param ban - 是否加入黑名单
         void reject(bool ban = false) {
@@ -2682,12 +2680,12 @@ namespace MiraiCP {
          * @param nick 对方昵称
          * @param message 申请理由
          */
-        NewFriendRequestEvent(QQID botid, const std::string& source,
-            QQID fromid,
-            QQID fromgroupid, const std::string& nick,
-            const std::string& message)
+        NewFriendRequestEvent(QQID botid, const std::string &source,
+                              QQID fromid,
+                              QQID fromgroupid, const std::string &nick,
+                              const std::string &message)
             : BotEvent(botid), source(source), fromid(fromid), fromgroupid(fromgroupid), nick(nick),
-            message(message) {}
+              message(message) {}
     };
     /// 新群成员加入
     class MemberJoinEvent : public BotEvent<MemberJoinEvent> {
@@ -2723,10 +2721,10 @@ namespace MiraiCP {
          * @param group 群组
          * @param inviterid 邀请群成员id，如果不存在和member id参数一致
          */
-        MemberJoinEvent(QQID botid, int type, const Member& member, const Group& group,
-            QQID inviterid) : BotEvent(botid), type(joinType(type)), member(member),
-            group(group),
-            inviterid(inviterid) {}
+        MemberJoinEvent(QQID botid, int type, const Member &member, const Group &group,
+                        QQID inviterid) : BotEvent(botid), type(joinType(type)), member(member),
+                                          group(group),
+                                          inviterid(inviterid) {}
     };
     /// 群成员离开
     class MemberLeaveEvent : public BotEvent<MemberLeaveEvent> {
@@ -2756,10 +2754,10 @@ namespace MiraiCP {
          * @param operaterid 操作人id, 主动退出时与member相同，该成员可能是当前bot，名称为operater以与系统operator区分
          */
         MemberLeaveEvent(QQID botid, int type, QQID memberid,
-            Group group,
-            QQID operaterid) : BotEvent(botid), type(type), memberid(memberid),
-            group(std::move(group)),
-            operaterid(operaterid) {}
+                         Group group,
+                         QQID operaterid) : BotEvent(botid), type(type), memberid(memberid),
+                                            group(std::move(group)),
+                                            operaterid(operaterid) {}
     };
     /// 撤回信息
     class RecallEvent : public BotEvent<RecallEvent> {
@@ -2794,11 +2792,11 @@ namespace MiraiCP {
          * @param groupid
          */
         RecallEvent(QQID botid, int type, int time, QQID authorid,
-            QQID operatorid, std::string ids, std::string internalids,
-            QQID groupid) : BotEvent(botid), type(type), time(time), authorid(authorid),
-            operatorid(operatorid), ids(std::move(ids)),
-            internalids(std::move(internalids)),
-            groupid(groupid) {}
+                    QQID operatorid, std::string ids, std::string internalids,
+                    QQID groupid) : BotEvent(botid), type(type), time(time), authorid(authorid),
+                                    operatorid(operatorid), ids(std::move(ids)),
+                                    internalids(std::move(internalids)),
+                                    groupid(groupid) {}
     };
     /// 机器人进入某群
     class BotJoinGroupEvent : public BotEvent<BotJoinGroupEvent> {
@@ -2821,7 +2819,7 @@ namespace MiraiCP {
          * @param inviter 邀请人
          */
         BotJoinGroupEvent(QQID botid, int type, Group group,
-            QQID inviter)
+                          QQID inviter)
             : BotEvent(botid), type(type), group(std::move(group)), inviterid(inviter) {}
     };
     /// 群临时会话
@@ -2846,27 +2844,27 @@ namespace MiraiCP {
          * @param messageSource 消息源
          */
         GroupTempMessageEvent(QQID botid, Group group, Member sender,
-            MessageChain message) : BotEvent(botid),
-            group(std::move(group)),
-            sender(std::move(sender)),
-            message(std::move(message)) {}
+                              MessageChain message) : BotEvent(botid),
+                                                      group(std::move(group)),
+                                                      sender(std::move(sender)),
+                                                      message(std::move(message)) {}
     public:
-        Contact* chat() override {
+        Contact *chat() override {
             return &sender;
         }
-        const Contact* chat() const override {
+        const Contact *chat() const override {
             return &sender;
         }
-        Contact* from() override {
+        Contact *from() override {
             return &sender;
         }
-        const Contact* from() const override {
+        const Contact *from() const override {
             return &sender;
         }
-        MessageChain* getMessageChain() override {
+        MessageChain *getMessageChain() override {
             return &message;
         }
-        const MessageChain* getMessageChain() const override {
+        const MessageChain *getMessageChain() const override {
             return &message;
         }
     };
@@ -2907,8 +2905,8 @@ namespace MiraiCP {
         Contact target;
         /// 发送的环境, 可能为Group / Friend
         Contact subject;
-        NudgeEvent(const Contact& c, const Contact& target, const Contact& subject, QQID botid) : BotEvent(botid), from(c),
-            target(target), subject(subject) {}
+        NudgeEvent(const Contact &c, const Contact &target, const Contact &subject, QQID botid) : BotEvent(botid), from(c),
+                                                                                                  target(target), subject(subject) {}
     };
     /// 机器人退群事件
     /// 可能有3种类型, 主动退/被踢/解散
@@ -2934,9 +2932,9 @@ namespace MiraiCP {
          * @param s 序列化后的文本
          */
         static void operate(std::string_view s,
-            QQID botid,
-            bool sign,
-            const std::string& msg = "");
+                            QQID botid,
+                            bool sign,
+                            const std::string &msg = "");
     public:
         static eventTypes::Types get_event_type() {
             return eventTypes::Types::MemberJoinRequestEvent;
@@ -2950,13 +2948,13 @@ namespace MiraiCP {
         QQID requesterId;
     public:
         MemberJoinRequestEvent(std::optional<Group> g, std::optional<Member> i, QQID botid, QQID requesterId, std::string source)
-            : BotEvent(botid), group(std::move(g)), inviter(std::move(i)), source(std::move(source)), requesterId(requesterId) {};
+            : BotEvent(botid), group(std::move(g)), inviter(std::move(i)), source(std::move(source)), requesterId(requesterId){};
         /// 通过
         void accept() {
             operate(this->source, this->bot.id, true);
         }
         /// 拒绝
-        void reject(const std::string& msg) {
+        void reject(const std::string &msg) {
             operate(this->source, this->bot.id, false, msg);
         }
     };
@@ -2980,9 +2978,9 @@ namespace MiraiCP {
     /// @brief 异常抛出事件
     class MiraiCPExceptionEvent : public MiraiCPEvent {
     private:
-        MiraiCPExceptionBase* exceptionPtr;
+        MiraiCPExceptionBase *exceptionPtr;
     public:
-        explicit MiraiCPExceptionEvent(MiraiCPExceptionBase* err) {
+        explicit MiraiCPExceptionEvent(MiraiCPExceptionBase *err) {
             exceptionPtr = err;
         }
     public:
@@ -2990,7 +2988,7 @@ namespace MiraiCP {
             return eventTypes::Types::MiraiCPExceptionEvent;
         }
         eventTypes::Types getEventType() const override { return this->get_event_type(); }
-        const MiraiCPExceptionBase* getException() const {
+        const MiraiCPExceptionBase *getException() const {
             return exceptionPtr;
         }
     };
@@ -3011,12 +3009,12 @@ namespace MiraiCP {
             /// 回调的handle，用于管理
             std::shared_ptr<NodeHandle> _handle;
         public:
-            std::function<bool(MiraiCPEvent*)> func;
-            explicit eventNode(std::function<bool(MiraiCPEvent*)> f) : _handle(new NodeHandle(true)), func(std::move(f)) {}
-            eventNode(eventNode&& _o) noexcept : _handle(std::move(_o._handle)), func(std::move(_o.func)) {}
+            std::function<bool(MiraiCPEvent *)> func;
+            explicit eventNode(std::function<bool(MiraiCPEvent *)> f) : _handle(new NodeHandle(true)), func(std::move(f)) {}
+            eventNode(eventNode &&_o) noexcept : _handle(std::move(_o._handle)), func(std::move(_o.func)) {}
         public:
             /// 返回true代表block之后的回调
-            bool run(MiraiCPEvent* a) const {
+            bool run(MiraiCPEvent *a) const {
                 return _handle->isEnable() && func(a);
             }
             std::shared_ptr<NodeHandle> getHandle() {
@@ -3029,7 +3027,7 @@ namespace MiraiCP {
     private: // member
         eventNodeTable _all_events_;
     private:
-        Event() : _all_events_(int(eventTypes::Types::count)) {};
+        Event() : _all_events_(int(eventTypes::Types::count)){};
     public: // singleton mode
         static Event processor;
     private:
@@ -3044,16 +3042,16 @@ namespace MiraiCP {
         }
         /// 清空全部配置
         static void clear() {
-            for (auto& a : processor._all_events_) a.clear();
+            for (auto &a: processor._all_events_) a.clear();
         }
         static void incomingEvent(nlohmann::json j, int type);
         /// 广播一个事件, 必须为MiraiCPEvent的派生类
         template<typename EventClass>
-        static void broadcast(EventClass&& val) {
+        static void broadcast(EventClass &&val) {
             static_assert(std::is_base_of_v<MiraiCPEvent, EventClass>, "只支持广播MiraiCPEvent的派生类");
-            MiraiCPEvent* p = &val;
-            for (auto&& [k, v] : processor._all_events_[id<EventClass>()]) {
-                for (auto&& a : v) {
+            MiraiCPEvent *p = &val;
+            for (auto &&[k, v]: processor._all_events_[id<EventClass>()]) {
+                for (auto &&a: v) {
                     if (a.run(p)) return;
                 }
             }
@@ -3068,8 +3066,8 @@ namespace MiraiCP {
         template<typename EventClass>
         static std::shared_ptr<NodeHandle> registerEvent(std::function<void(EventClass)> callback, priority_level level = 100) {
             static_assert(std::is_base_of_v<MiraiCPEvent, EventClass>, "只支持注册MiraiCPEvent的派生类事件");
-            std::function<bool(MiraiCPEvent*)> tmp = [=](MiraiCPEvent* p) {
-                callback(*dynamic_cast<EventClass*>(p));
+            std::function<bool(MiraiCPEvent *)> tmp = [=](MiraiCPEvent *p) {
+                callback(*dynamic_cast<EventClass *>(p));
                 return false;
             };
             auto t = eventNode(tmp);
@@ -3089,8 +3087,8 @@ namespace MiraiCP {
         template<typename EventClass>
         static std::shared_ptr<NodeHandle> registerBlockingEvent(std::function<bool(EventClass)> callback, priority_level level = 100) {
             static_assert(std::is_base_of_v<MiraiCPEvent, EventClass>, "只支持注册MiraiCPEvent的派生类事件");
-            std::function<bool(MiraiCPEvent*)> tmp = [=](MiraiCPEvent* p) {
-                return callback(*dynamic_cast<EventClass*>(p));
+            std::function<bool(MiraiCPEvent *)> tmp = [=](MiraiCPEvent *p) {
+                return callback(*dynamic_cast<EventClass *>(p));
             };
             auto t = eventNode(tmp);
             auto ans = t.getHandle();
@@ -3128,7 +3126,7 @@ namespace MiraiCP {
         ~MiraiCPExceptionBase() override = default;
     public:
         /// 异常信息
-        const char* what() const noexcept override { return re.c_str(); }
+        const char *what() const noexcept override { return re.c_str(); }
         /// 返回std::string的异常信息
         string getError() const { return re; }
         /// 实际抛出方法
@@ -3170,21 +3168,21 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class UploadException : public MiraiCPExceptionCRTP<UploadException> {
     public:
-        explicit UploadException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("上传(图片/文件)异常" + text, std::move(_filename), _lineNum) {}
+        explicit UploadException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("上传(图片/文件)异常" + text, std::move(_filename), _lineNum) {}
         static std::string exceptionType() { return "UploadException"; }
     };
     /// 通常为Mirai返回
     /// @see MiraiCPExceptionBase
     class IllegalStateException : public MiraiCPExceptionCRTP<IllegalStateException> {
     public:
-        explicit IllegalStateException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("状态异常:" + text, std::move(_filename), _lineNum) {}
+        explicit IllegalStateException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("状态异常:" + text, std::move(_filename), _lineNum) {}
         static std::string exceptionType() { return "IllegalStateException"; }
     };
     /// 内部异常, 通常为json读写问题
     /// @see MiraiCPExceptionBase
     class APIException : public MiraiCPExceptionCRTP<APIException> {
     public:
-        explicit APIException(const std::string& text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("MiraiCP内部无法预料的错误:" + text, std::move(_filename), _lineNum) {}
+        explicit APIException(const std::string &text, string _filename, int _lineNum) : MiraiCPExceptionCRTP("MiraiCP内部无法预料的错误:" + text, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "APIException"; }
     };
     /// 机器人操作异常
@@ -3192,7 +3190,7 @@ namespace MiraiCP {
     class BotException : public MiraiCPExceptionCRTP<BotException> {
     public:
         explicit BotException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("没有权限执行该操作", std::move(_filename), _lineNum) {}
-        explicit BotException(const string& d, string _filename, int _lineNum) : MiraiCPExceptionCRTP(d, std::move(_filename), _lineNum) {}
+        explicit BotException(const string &d, string _filename, int _lineNum) : MiraiCPExceptionCRTP(d, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "BotException"; }
     };
     /// 被禁言异常, 通常发生于发送信息
@@ -3209,7 +3207,7 @@ namespace MiraiCP {
     class MuteException : public MiraiCPExceptionCRTP<MuteException> {
     public:
         /*
-        *	 禁言时间超出0s~30d
+        *    禁言时间超出0s~30d
         */
         MuteException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("禁言时长不在0s~30d中间", std::move(_filename), _lineNum) {}
         static string exceptionType() { return "MuteException"; }
@@ -3226,22 +3224,22 @@ namespace MiraiCP {
         MemberExceptionType type = OtherType;
         /*
         *   "1" - 找不到群
-        *	"2" - 找不到群成员
+        *   "2" - 找不到群成员
         */
         explicit MemberException(int _type, string _filename, int _lineNum) : MiraiCPExceptionCRTP(
-            [&]() -> string {
-                type = MemberExceptionType(_type);
-                switch (type) {
-                case NoSuchGroup:
-                    return "找不到群";
-                case NoSuchMember:
-                    return "找不到群成员";
-                default:
-                    return "";
-                }
-            }(),
-                std::move(_filename), _lineNum) {}
-            static string exceptionType() { return "MemberException"; }
+                                                                                      [&]() -> string {
+                                                                                          type = MemberExceptionType(_type);
+                                                                                          switch (type) {
+                                                                                              case NoSuchGroup:
+                                                                                                  return "找不到群";
+                                                                                              case NoSuchMember:
+                                                                                                  return "找不到群成员";
+                                                                                              default:
+                                                                                                  return "";
+                                                                                          }
+                                                                                      }(),
+                                                                                      std::move(_filename), _lineNum) {}
+        static string exceptionType() { return "MemberException"; }
     };
     /// 获取群成员错误
     /// @see MiraiCPExceptionBase
@@ -3271,14 +3269,14 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class RemoteAssetException : public MiraiCPExceptionCRTP<RemoteAssetException> {
     public:
-        explicit RemoteAssetException(const string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
+        explicit RemoteAssetException(const string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "RemoteAssetException"; }
     };
     /// 参数错误
     /// @see MiraiCPExceptionBase
     class IllegalArgumentException : public MiraiCPExceptionCRTP<IllegalArgumentException> {
     public:
-        explicit IllegalArgumentException(const string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {
+        explicit IllegalArgumentException(const string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {
         }
         static string exceptionType() { return "IllegalArgumentException"; }
     };
@@ -3286,14 +3284,14 @@ namespace MiraiCP {
     /// @see MiraiCPExceptionBase
     class TimeOutException : public MiraiCPExceptionCRTP<TimeOutException> {
     public:
-        explicit TimeOutException(const std::string& e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
+        explicit TimeOutException(const std::string &e, string _filename, int _lineNum) : MiraiCPExceptionCRTP(e, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "TimeOutException"; }
     };
     /// 事件被取消, 一般出现在发送消息时在preSendMessageEvent取消的时候抛出
     /// @see MiraiCPExceptionBase
     class EventCancelledException : public MiraiCPExceptionCRTP<EventCancelledException> {
     public:
-        explicit EventCancelledException(const string& msg, string _filename, int _lineNum) : MiraiCPExceptionCRTP(msg, std::move(_filename), _lineNum) {}
+        explicit EventCancelledException(const string &msg, string _filename, int _lineNum) : MiraiCPExceptionCRTP(msg, std::move(_filename), _lineNum) {}
         static string exceptionType() { return "EventCancelledException"; }
     };
     /// 插件没有权限时抛出该异常
@@ -3321,21 +3319,21 @@ namespace MiraiCP {
         /// 抛出异常的线程 ID
         std::thread::id threadId;
     public:
-        explicit MiraiCPThreadException(const std::string& exception_content, std::thread::id threadId, string _filename, int _lineNum)
+        explicit MiraiCPThreadException(const std::string &exception_content, std::thread::id threadId, string _filename, int _lineNum)
             : MiraiCPExceptionCRTP(exception_content + " at threadId: " + getThreadIdStr(threadId), std::move(_filename), _lineNum),
-            threadId(threadId) {}
+              threadId(threadId) {}
     public:
         std::string getThreadIdStr() const { return getThreadIdStr(threadId); }
     public:
         static string exceptionType() { return "MiraiCPThreadException"; }
     private:
-        static std::string getThreadIdStr(const std::thread::id& id) {
+        static std::string getThreadIdStr(const std::thread::id &id) {
             std::stringstream ss;
             ss << id;
             return ss.str();
         }
     };
-    inline void ErrorHandle0(const std::string& name, int line, const std::string& re, const std::string& ErrorMsg = "") {
+    inline void ErrorHandle0(const std::string &name, int line, const std::string &re, const std::string &ErrorMsg = "") {
         if (re == "EF")
             throw FriendException(name, line);
         if (re == "EG")
@@ -3377,7 +3375,7 @@ namespace MiraiCP {
         string brief = "[聊天记录]";
         string source = "聊天记录";
         string summary = "查看1条转发信息";
-        std::vector<string> preview{ "Name: message" };
+        std::vector<string> preview{"Name: message"};
     public:
         static std::optional<ForwardedMessageDisplayStrategy> defaultStrategy() { return std::nullopt; }
     public:
@@ -3416,7 +3414,7 @@ namespace MiraiCP {
         /// @param message - 发送的信息
         /// @param time - 发送时间，以时间戳记
         ForwardedNode(QQID id, std::string name, MessageChain message,
-            int time)
+                      int time)
             : id(id), name(std::move(name)), message(std::move(message)), time(time), isForwardedMessage(false) {}
         /// @brief 构造聊天记录里每条信息
         /// @param c - 发送者的contact指针
@@ -3451,21 +3449,21 @@ namespace MiraiCP {
         ForwardedMessage(std::initializer_list<ForwardedNode> nodes, std::optional<ForwardedMessageDisplayStrategy> display = ForwardedMessageDisplayStrategy::defaultStrategy()) : ForwardedMessage(std::vector(nodes), std::move(display)) {}
         ForwardedMessage(std::vector<ForwardedNode> nodes, std::optional<ForwardedMessageDisplayStrategy> display = ForwardedMessageDisplayStrategy::defaultStrategy()) : nodes(std::move(nodes)), display(std::move(display)) {}
     public:
-        void add(const ForwardedNode& a) { this->nodes.push_back(a); }
+        void add(const ForwardedNode &a) { this->nodes.push_back(a); }
         /// 发送给群或好友或群成员
-        MessageSource sendTo(Contact* c);
+        MessageSource sendTo(Contact *c);
         nlohmann::json nodesToJson();
-        ForwardedMessage plus(const ForwardedNode& a) {
+        ForwardedMessage plus(const ForwardedNode &a) {
             ForwardedMessage tmp(*this);
             tmp.nodes.push_back(a);
             return tmp;
         }
     public:
-        ForwardedNode& operator[](int index) { return nodes[index]; }
-        const ForwardedNode& operator[](int index) const { return nodes[index]; }
-        ForwardedMessage operator+(const ForwardedNode& a) { return this->plus(a); }
+        ForwardedNode &operator[](int index) { return nodes[index]; }
+        const ForwardedNode &operator[](int index) const { return nodes[index]; }
+        ForwardedMessage operator+(const ForwardedNode &a) { return this->plus(a); }
     public:
-        static ForwardedMessage deserializationFromMessageSourceJson(const nlohmann::json& j);
+        static ForwardedMessage deserializationFromMessageSourceJson(const nlohmann::json &j);
     };
     /// 接收到的转发消息, 发送用 MiraiCP::ForwardedMessage
     class OnlineForwardedMessage : public SingleMessage {
@@ -3487,16 +3485,16 @@ namespace MiraiCP {
             return "";
         }
     public:
-        ForwardedNode& operator[](int i) {
+        ForwardedNode &operator[](int i) {
             return nodelist[i];
         }
-        const ForwardedNode& operator[](int i) const {
+        const ForwardedNode &operator[](int i) const {
             return nodelist[i];
         }
-        bool operator==(const OnlineForwardedMessage& m) const;
+        bool operator==(const OnlineForwardedMessage &m) const;
     public:
         static int type() { return -4; }
-        static OnlineForwardedMessage deserializationFromMessageSourceJson(const nlohmann::json& j);
+        static OnlineForwardedMessage deserializationFromMessageSourceJson(const nlohmann::json &j);
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_FORWARDEDMESSAGE_H
@@ -3522,7 +3520,7 @@ namespace MiraiCP {
          * @param botid 对应机器人id
          */
         explicit Friend(QQID friendid, QQID botid);
-        explicit Friend(const Contact& c) : Contact(c) {
+        explicit Friend(const Contact &c) : Contact(c) {
             if (c.type() != 1)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 1(friend)", MIRAICP_EXCEPTION_WHERE);
             refreshInfo();
@@ -3557,12 +3555,12 @@ namespace MiraiCP {
             /// 序列化到文本
             nlohmann::json serializeToJson();
             explicit AnnouncementParams(bool send2New = false, bool requireConfirm = false, bool pinned = false,
-                bool showEditCard = false, bool showPopup = false) : send2new(send2New),
-                requireConfirm(
-                    requireConfirm),
-                pinned(pinned),
-                showEditCard(showEditCard),
-                showPopup(showPopup) {}
+                                        bool showEditCard = false, bool showPopup = false) : send2new(send2New),
+                                                                                             requireConfirm(
+                                                                                                     requireConfirm),
+                                                                                             pinned(pinned),
+                                                                                             showEditCard(showEditCard),
+                                                                                             showPopup(showPopup) {}
         };
         /// 在线群公告
         class OnlineAnnouncement {
@@ -3589,14 +3587,14 @@ namespace MiraiCP {
             /// @throw BotException
             void deleteThis();
             /// 反序列化
-            static OnlineAnnouncement deserializeFromJson(const nlohmann::json&);
-            OnlineAnnouncement(const std::string& content, AnnouncementParams& params,
-                QQID groupid, QQID senderid, QQID botid,
-                long long int publicationTime, const std::string& fid, int confirmNum,
-                const std::string& imageid) : content(content), params(params), groupid(groupid),
-                senderid(senderid), botid(botid),
-                publicationTime(publicationTime),
-                fid(fid), confirmNum(confirmNum), imageid(imageid) {}
+            static OnlineAnnouncement deserializeFromJson(const nlohmann::json &);
+            OnlineAnnouncement(const std::string &content, AnnouncementParams &params,
+                               QQID groupid, QQID senderid, QQID botid,
+                               long long int publicationTime, const std::string &fid, int confirmNum,
+                               const std::string &imageid) : content(content), params(params), groupid(groupid),
+                                                             senderid(senderid), botid(botid),
+                                                             publicationTime(publicationTime),
+                                                             fid(fid), confirmNum(confirmNum), imageid(imageid) {}
         };
         /// 本地(未发送)群公告
         class OfflineAnnouncement {
@@ -3606,9 +3604,9 @@ namespace MiraiCP {
             /// 公告属性
             AnnouncementParams params;
             /// 发布群公告
-            Group::OnlineAnnouncement publishTo(const Group&);
-            OfflineAnnouncement(const std::string& content, AnnouncementParams params) : content(content),
-                params(params) {}
+            Group::OnlineAnnouncement publishTo(const Group &);
+            OfflineAnnouncement(const std::string &content, AnnouncementParams params) : content(content),
+                                                                                         params(params) {}
         };
         /**
          * @brief 群设置
@@ -3642,7 +3640,7 @@ namespace MiraiCP {
         /// @param botid 机器人id
         /// @doxygenEg{1007, group.cpp, 从群号构建群对象}
         Group(QQID groupid, QQID botid);
-        explicit Group(const Contact& c) : Contact(c) {
+        explicit Group(const Contact &c) : Contact(c) {
             if (c.type() != 2)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 2(group)", MIRAICP_EXCEPTION_WHERE);
             refreshInfo();
@@ -3680,9 +3678,9 @@ namespace MiraiCP {
         @attention 路径分隔符是 `/`
         @doxygenEg{1008, group.cpp, 发送群文件}
         */
-        RemoteFile sendFile(const std::string& path, const std::string& filepath);
+        RemoteFile sendFile(const std::string &path, const std::string &filepath);
         /// 发送语音
-        MessageSource sendVoice(const std::string& path) {
+        MessageSource sendVoice(const std::string &path) {
             return Contact::sendVoice0(path);
         }
         /*!
@@ -3693,15 +3691,15 @@ namespace MiraiCP {
         @see RemoteFile
         @doxygenEg{1009, group.cpp, 获取群文件}
         */
-        RemoteFile getFile(const std::string& path, const std::string& id = "");
+        RemoteFile getFile(const std::string &path, const std::string &id = "");
         /*!
          * @brief 取文件信息(根据id)
          * @param id 文件id
          * @return 文件
          * @detail 相当于从根目录开始遍历查找文件, 相当于getFile("/", id);
          */
-        RemoteFile getFileById(const std::string& id);
-        RemoteFile getFileByFile(const RemoteFile& file) {
+        RemoteFile getFileById(const std::string &id);
+        RemoteFile getFileByFile(const RemoteFile &file) {
             return getFileById(file.id);
         }
         /*!
@@ -3710,10 +3708,10 @@ namespace MiraiCP {
          * @return 返回值为一个vector容器, 每一项为short_info
          * @doxygenEg{1010, group.cpp, 获取群文件列表}
         */
-        std::vector<file_short_info> getFileList(const std::string& path);
+        std::vector<file_short_info> getFileList(const std::string &path);
         /// 取文件列表以字符串形式返回
         /// @param path 文件夹路径
-        std::string getFileListString(const std::string& path);
+        std::string getFileListString(const std::string &path);
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_GROUP_H
@@ -3792,10 +3790,10 @@ namespace MiraiCP::KtOperation {
      * @return 返回数据
      */
     std::string ktOperation(
-        operation_set type,
-        nlohmann::json data,
-        bool catchErr = true,
-        const std::string& errorInfo = "");
+            operation_set type,
+            nlohmann::json data,
+            bool catchErr = true,
+            const std::string &errorInfo = "");
 } // namespace MiraiCP::KtOperation
 #endif //MIRAICP_PRO_KTOPERATION_H
 #ifndef MIRAICP_PRO_LOGGER_H
@@ -3832,7 +3830,7 @@ namespace MiraiCP {
             /// @brief 是否启用
             bool enable = true;
             /// @brief 执行的操作，格式为lambda
-            Action action = [](const string& content, int level) {};
+            Action action = [](const string &content, int level) {};
         };
         Handler loggerhandler;
     private:
@@ -3850,14 +3848,14 @@ namespace MiraiCP {
             return a + constructString(val1...);
         }
         template<class... T>
-        static std::string constructString(MiraiCodeable& val, T... val1) {
+        static std::string constructString(MiraiCodeable &val, T... val1) {
             return val.toMiraiCode() + constructString(val1...);
         }
     protected:
         /// @brief 日志底层实现封装
         /// @param log 日志内容
         /// @param level 日志等级
-        virtual void log_interface(const string& log, int level) = 0;
+        virtual void log_interface(const string &log, int level) = 0;
     public:
         ///发送普通(info级日志)
         template<class... T>
@@ -3894,7 +3892,7 @@ namespace MiraiCP {
         /// @brief 日志底层实现封装
         /// @param content 日志内容
         /// @param level 日志等级
-        void log_interface(const std::string& content, int level) override;
+        void log_interface(const std::string &content, int level) override;
     public:
         static Logger logger;
     };
@@ -3903,9 +3901,9 @@ namespace MiraiCP {
     public:
         QQID id;
     protected:
-        void log_interface(const std::string& content, int level) override;
+        void log_interface(const std::string &content, int level) override;
     public:
-        IdLogger(QQID id, Logger* l) : id(id) {
+        IdLogger(QQID id, Logger *l) : id(id) {
             this->loggerhandler = l->loggerhandler;
         }
     };
@@ -3923,19 +3921,19 @@ namespace MiraiCP {
         /// @param c 目标Contact->serialization()
         /// @param miraicode 是否为miraicode格式
         /// @return
-        static std::string send0(const std::string& content, nlohmann::json c, int retryTime, bool miraicode,
-            const std::string& errorInfo = "");
+        static std::string send0(const std::string &content, nlohmann::json c, int retryTime, bool miraicode,
+                                 const std::string &errorInfo = "");
         /// @brief 取该联系人的一些信息
         /// @param c 该联系人Contact->serializationToString()
         /// @return json格式字符串，待解析
-        static std::string getInfoSource(const std::string&);
+        static std::string getInfoSource(const std::string &);
         /*!
          * @brief 上传图片
          * @param path 本地地址
          * @param c 上传的对象, Contact->serializationToString()
          * @return string 待解析json
          */
-        static std::string uploadImg0(const std::string&, const std::string&);
+        static std::string uploadImg0(const std::string &, const std::string &);
         /// 每个对象的必有信息
         struct info {
             std::string nickornamecard;
@@ -3943,7 +3941,7 @@ namespace MiraiCP {
         };
         /// 获取每个对象必有信息
         /// @see LowLevelAPI::info
-        static info info0(const std::string& source);
+        static info info0(const std::string &source);
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_LOWLEVELAPI_H
@@ -3972,7 +3970,7 @@ namespace MiraiCP {
         /// @param groupid 所在群号
         /// @param botid 机器人id
         explicit Member(QQID qqid, QQID groupid, QQID botid);
-        explicit Member(const Contact& c) : Contact(c) {
+        explicit Member(const Contact &c) : Contact(c) {
             if (c.type() != 3)
                 throw IllegalArgumentException("无法从 type==" + std::to_string(c.type()) + " 转为 type == 3(member)", MIRAICP_EXCEPTION_WHERE);
             this->isAnonymous = this->_anonymous;
@@ -3983,7 +3981,7 @@ namespace MiraiCP {
         /// 重新获取(刷新)群成员信息
         void refreshInfo();
         /// 发送语音
-        MessageSource sendVoice(const std::string& path) {
+        MessageSource sendVoice(const std::string &path) {
             return Contact::sendVoice0(path);
         }
         /// 获取权限，会在构造时调用，请使用permission缓存变量
@@ -4002,7 +4000,7 @@ namespace MiraiCP {
         /*! 踢出这个群成员
         * @param reason - 原因
         */
-        void kick(const std::string& reason);
+        void kick(const std::string &reason);
         /// At一个群成员
         At at() {
             return At(this->id());
@@ -4031,7 +4029,7 @@ namespace MiraiCP {
             // std::shared_ptr<SingleMessage> content;
         public: // constructor
             template<class T>
-            explicit Message(const T& _singleMessage) {
+            explicit Message(const T &_singleMessage) {
                 static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
                 reset(new T(_singleMessage));
             }
@@ -4049,7 +4047,7 @@ namespace MiraiCP {
                 static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的派生类");
                 if (T::type() != this->type())
                     throw IllegalArgumentException("cannot convert from " + SingleMessage::messageType[this->type()] + " to " + SingleMessage::messageType[T::type()], MIRAICP_EXCEPTION_WHERE);
-                T* re = static_cast<T*>(std::shared_ptr<SingleMessage>::get());
+                T *re = static_cast<T *>(std::shared_ptr<SingleMessage>::get());
                 if (re == nullptr)
                     throw IllegalArgumentException("cannot convert from " + SingleMessage::messageType[this->type()] + " to " + SingleMessage::messageType[T::type()], MIRAICP_EXCEPTION_WHERE);
                 return *re;
@@ -4057,10 +4055,10 @@ namespace MiraiCP {
             std::string toMiraiCode() const {
                 return (*this)->toMiraiCode();
             }
-            bool operator==(const Message& m) const {
+            bool operator==(const Message &m) const {
                 return (*this)->type == m->type && (*this)->toMiraiCode() == m->toMiraiCode();
             }
-            bool operator!=(const Message& m) const {
+            bool operator!=(const Message &m) const {
                 return (*this)->type != m->type || (*this)->toMiraiCode() != m->toMiraiCode();
             }
         };
@@ -4073,8 +4071,8 @@ namespace MiraiCP {
         /// 如果由MiraiCP构造(incoming)就会存在，否则则不存在
         std::optional<MessageSource> source = std::nullopt;
     public:
-        MessageChain(const MessageChain& _o) = default;
-        MessageChain(MessageChain&& _o) = default;
+        MessageChain(const MessageChain &_o) = default;
+        MessageChain(MessageChain &&_o) = default;
         /// incoming构造器
         template<class... T>
         explicit MessageChain(MessageSource ms, T... args) : source(std::move(ms)) {
@@ -4094,18 +4092,18 @@ namespace MiraiCP {
         };
         /// outcoming 构造器
         template<class T>
-        explicit MessageChain(const T& msg) {
+        explicit MessageChain(const T &msg) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage子类");
             emplace_back(msg);
         };
     public:
-        [[deprecated("MessageChain继承自std::vector<Message>，无需获取内部vector")]] const std::vector<Message>& vector() const {
+        [[deprecated("MessageChain继承自std::vector<Message>，无需获取内部vector")]] const std::vector<Message> &vector() const {
             return *static_cast<const std::vector<Message> *>(this);
         }
         std::string toMiraiCode() const override;
         std::vector<std::string> toMiraiCodeVector() const {
             std::vector<std::string> tmp;
-            for (auto&& a : *this)
+            for (auto &&a: *this)
                 tmp.emplace_back(a->toMiraiCode());
             return tmp;
         }
@@ -4113,11 +4111,11 @@ namespace MiraiCP {
         /// @tparam T 任意的SingleMessage的子类
         /// @param a 添加的值
         template<class T>
-        void add(const T& a) {
+        void add(const T &a) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只接受SingleMessage的子类");
             emplace_back(a);
         }
-        void add(const MessageSource& val) {
+        void add(const MessageSource &val) {
             source = val;
         }
         /// 筛选出某种类型的消息
@@ -4125,7 +4123,7 @@ namespace MiraiCP {
         std::vector<T> filter() {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             std::vector<T> re;
-            for (auto&& a : *this) {
+            for (auto &&a: *this) {
                 if (a.type() == T::type())
                     re.emplace_back(a.get<T>());
             }
@@ -4133,10 +4131,10 @@ namespace MiraiCP {
         }
         /// 自定义筛选器
         template<class T>
-        std::vector<T> filter(const std::function<bool(Message)>& func) {
+        std::vector<T> filter(const std::function<bool(Message)> &func) {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             std::vector<T> re;
-            for (auto&& a : *this) {
+            for (auto &&a: *this) {
                 if (func(a))
                     re.push_back(a.get<T>());
             }
@@ -4145,33 +4143,33 @@ namespace MiraiCP {
         /// 找出第一个指定的type的消息，消息可能不存在
         template<class T>
         std::optional<T> first() {
-            for (auto&& a : *this)
+            for (auto &&a: *this)
                 if (a.type() == T::type())
                     return a.get<T>();
             return std::nullopt;
         }
         template<class T>
-        [[nodiscard]] MessageChain plus(const T& a) const {
+        [[nodiscard]] MessageChain plus(const T &a) const {
             static_assert(std::is_base_of_v<SingleMessage, T>, "只支持SingleMessage的子类");
             MessageChain tmp(*this);
             tmp.emplace_back(a);
             return tmp;
         }
-        [[nodiscard]] MessageChain plus(const MessageChain& mc) const {
+        [[nodiscard]] MessageChain plus(const MessageChain &mc) const {
             MessageChain tmp(*this);
             tmp.insert(tmp.end(), mc.begin(), mc.end());
             return tmp;
         }
-        [[nodiscard]] MessageChain plus(const MessageSource& ms) const {
+        [[nodiscard]] MessageChain plus(const MessageSource &ms) const {
             MessageChain tmp(*this);
             tmp.source = ms;
             return tmp;
         }
         template<class T>
-        MessageChain operator+(const T& msg) const {
+        MessageChain operator+(const T &msg) const {
             return this->plus(msg);
         }
-        bool operator==(const MessageChain& mc) const {
+        bool operator==(const MessageChain &mc) const {
             if (size() != mc.size())
                 return false;
             for (size_t i = 0; i < size(); i++) {
@@ -4180,7 +4178,7 @@ namespace MiraiCP {
             }
             return true;
         }
-        bool operator!=(const MessageChain& mc) const {
+        bool operator!=(const MessageChain &mc) const {
             return !(*this == mc);
         }
         bool empty() const {
@@ -4197,34 +4195,34 @@ namespace MiraiCP {
         /// @deprecated use Contact.quoteAndSend or `this->quoteAndSend1(s, groupid, env)`, since v2.8.1
         template<class T>
         ShouldNotUse("use Contact.quoteAndSend") MessageSource
-            quoteAndSendMessage(T s, QQID groupid = -1, void* env = nullptr) = delete;
+                quoteAndSendMessage(T s, QQID groupid = -1, void *env = nullptr) = delete;
     public: // static functions
         /// @brief 找到miraiCode结尾的`]`
         /// @param s 文本
         /// @param start 开始位置
         /// @return 如果不存在返回-1, 存在则返回index
-        static size_t findEnd(const std::string& s, size_t start) {
+        static size_t findEnd(const std::string &s, size_t start) {
             size_t pos = start;
             while (pos < s.length()) {
                 switch (s[pos]) {
-                case '\\':
-                    pos += 2;
-                    continue;
-                case ']':
-                    return pos;
+                    case '\\':
+                        pos += 2;
+                        continue;
+                    case ']':
+                        return pos;
                 }
                 pos++;
             }
             return -1;
         }
         /// 从miraicode string构建MessageChain
-        static MessageChain deserializationFromMiraiCode(const std::string& m);
-        static MessageChain deserializationFromMessageSourceJson(const std::string& msg, bool origin = true) {
+        static MessageChain deserializationFromMiraiCode(const std::string &m);
+        static MessageChain deserializationFromMessageSourceJson(const std::string &msg, bool origin = true) {
             return deserializationFromMessageSourceJson(nlohmann::json::parse(msg), origin);
         }
         /// 从MessageSource json中构建MessageChain, 常用于Incoming message
         /// @attention 本方法并不会自动附加MessageSource到MessageChain, 需要用.plus方法自行附加
-        static MessageChain deserializationFromMessageSourceJson(const nlohmann::json& j, bool origin = true);
+        static MessageChain deserializationFromMessageSourceJson(const nlohmann::json &j, bool origin = true);
     private: // private methods
         void constructMessages() {}
         template<class T1, class... T2>
@@ -4234,17 +4232,17 @@ namespace MiraiCP {
             constructMessages(args...);
         }
         template<class... T2>
-        void constructMessages(const std::string& h, T2... args) {
+        void constructMessages(const std::string &h, T2... args) {
             emplace_back(PlainText(h));
             constructMessages(args...);
         }
         template<class... T2>
-        void constructMessages(const char* h, T2... args) {
+        void constructMessages(const char *h, T2... args) {
             emplace_back(PlainText(h));
             constructMessages(args...);
         }
         template<class... T>
-        void constructMessages(const MessageChain& mc, T... args) {
+        void constructMessages(const MessageChain &mc, T... args) {
             insert(end(), mc.begin(), mc.end());
             constructMessages(args...);
         }
@@ -4257,7 +4255,7 @@ namespace MiraiCP {
         MessageSource quoteAndSend1(std::string s, QQID groupid) {
             return this->quoteAndSend0(std::move(s), groupid);
         }
-        MessageSource quoteAndSend1(const MessageChain& mc, QQID groupid) {
+        MessageSource quoteAndSend1(const MessageChain &mc, QQID groupid) {
             return this->quoteAndSend0(mc.toMiraiCode(), groupid);
         }
     };
@@ -4283,16 +4281,16 @@ namespace MiraiCP {
         MessageSource() = default;
         /// @deprecated 用Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMiraiCode(MiraiCodeable* msg, QQID groupid = 0,
-                void* env = nullptr) const = delete;
+                quoteAndSendMiraiCode(MiraiCodeable *msg, QQID groupid = 0,
+                                      void *env = nullptr) const = delete;
         /// @deprecated use Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMsg(const std::string& c, QQID groupid = 0,
-                void* = nullptr) const = delete;
+                quoteAndSendMsg(const std::string &c, QQID groupid = 0,
+                                void * = nullptr) const = delete;
         /// @deprecated use Contact.quoteAndSendMessage, since v2.8.1
         ShouldNotUse("Use Contact.quoteAndSendMessage") MessageSource
-            quoteAndSendMiraiCode(const std::string& c, QQID groupid = 0,
-                void* = nullptr) const = delete;
+                quoteAndSendMiraiCode(const std::string &c, QQID groupid = 0,
+                                      void * = nullptr) const = delete;
         /*!
          * @brief 构建消息源
          * @param ids
@@ -4307,11 +4305,11 @@ namespace MiraiCP {
          * {"ids":"", "internalids":""}
          * @endcode
          */
-        static MessageSource deserializeFromString(const std::string& source);
+        static MessageSource deserializeFromString(const std::string &source);
         std::string serializeToString() const;
         /// @brief 撤回该信息
         void recall() const;
-        bool operator==(const MessageSource& ms) const {
+        bool operator==(const MessageSource &ms) const {
             return this->ids == ms.ids && this->internalids == ms.internalids;
         }
     };
@@ -4344,36 +4342,33 @@ namespace MiraiCP {
     public:
         MiraiCPNewThread() noexcept = default;
         template<typename Callable, typename... Args>
-        explicit MiraiCPNewThread(Callable&& func, Args &&...args)
+        explicit MiraiCPNewThread(Callable &&func, Args &&...args)
             : std::thread(
-                [lambda_func = std::forward<Callable>(func)](auto &&...argss) {
-            try {
-                lambda_func(std::forward<decltype(argss)>(argss)...);
-            }
-            catch (MiraiCPExceptionBase& e) {
-                e.raise();
-                Event::broadcast(MiraiCPExceptionEvent(&e));
-            }
-            catch (const std::exception& e) {
-                MiraiCPThreadException exNew(std::string(e.what()), std::this_thread::get_id(), MIRAICP_EXCEPTION_WHERE);
-                exNew.raise();
-                Event::broadcast(MiraiCPExceptionEvent(&exNew));
-            }
-            catch (...) {
-                MiraiCPThreadException exNew("unknown exception type", std::this_thread::get_id(), MIRAICP_EXCEPTION_WHERE);
-                exNew.raise();
-                Event::broadcast(MiraiCPExceptionEvent(&exNew));
-            }
-        },
-                std::forward<Args>(args)...) {}
-        MiraiCPNewThread& operator=(const std::thread&) = delete;
-        MiraiCPNewThread& operator=(const MiraiCPNewThread&) = delete;
-        MiraiCPNewThread& operator=(std::thread&& other) {
-            *static_cast<std::thread*>(this) = std::move(other);
+                      [lambda_func = std::forward<Callable>(func)](auto &&...argss) {
+                          try {
+                              lambda_func(std::forward<decltype(argss)>(argss)...);
+                          } catch (MiraiCPExceptionBase &e) {
+                              e.raise();
+                              Event::broadcast(MiraiCPExceptionEvent(&e));
+                          } catch (const std::exception &e) {
+                              MiraiCPThreadException exNew(std::string(e.what()), std::this_thread::get_id(), MIRAICP_EXCEPTION_WHERE);
+                              exNew.raise();
+                              Event::broadcast(MiraiCPExceptionEvent(&exNew));
+                          } catch (...) {
+                              MiraiCPThreadException exNew("unknown exception type", std::this_thread::get_id(), MIRAICP_EXCEPTION_WHERE);
+                              exNew.raise();
+                              Event::broadcast(MiraiCPExceptionEvent(&exNew));
+                          }
+                      },
+                      std::forward<Args>(args)...) {}
+        MiraiCPNewThread &operator=(const std::thread &) = delete;
+        MiraiCPNewThread &operator=(const MiraiCPNewThread &) = delete;
+        MiraiCPNewThread &operator=(std::thread &&other) {
+            *static_cast<std::thread *>(this) = std::move(other);
             return *this;
         }
-        MiraiCPNewThread& operator=(MiraiCPNewThread&& other) noexcept {
-            *static_cast<std::thread*>(this) = std::move(*static_cast<std::thread*>(&other));
+        MiraiCPNewThread &operator=(MiraiCPNewThread &&other) noexcept {
+            *static_cast<std::thread *>(this) = std::move(*static_cast<std::thread *>(&other));
             return *this;
         }
     };
@@ -4403,41 +4398,41 @@ namespace MiraiCP {
             return content;
         }
         /// 从MiraiCodeable类型初始化一个miraicode字符串
-        MiraiCode(MiraiCodeable* a) { // NOLINT(google-explicit-constructor)
+        MiraiCode(MiraiCodeable *a) { // NOLINT(google-explicit-constructor)
             content = a->toMiraiCode();
         }
         /// 从文本初始化一个miraicode字符串, 根据第二个参数决定是否转码, 默认不转码
         /// @attention 如果是传入文本MiraiCode，请勿转码，转码只是为了[mirai:xxx:<应该转码的部分>], 如果<应该转码>的部分里面含有'[]:,'内容，请调用Tools::escapeToMiraiCode转码
-        MiraiCode(const std::string& a, bool convert = false);
-        MiraiCode operator+(MiraiCodeable* a) {
-            return { content + a->toMiraiCode() };
+        MiraiCode(const std::string &a, bool convert = false);
+        MiraiCode operator+(MiraiCodeable *a) {
+            return {content + a->toMiraiCode()};
         }
-        MiraiCode operator+(const std::string& a) {
-            return { content + a };
+        MiraiCode operator+(const std::string &a) {
+            return {content + a};
         }
-        MiraiCode operator+(const MiraiCode& a) {
-            return { content + a.content };
+        MiraiCode operator+(const MiraiCode &a) {
+            return {content + a.content};
         }
-        MiraiCode operator+(MiraiCode* a) {
-            return { content + a->content };
+        MiraiCode operator+(MiraiCode *a) {
+            return {content + a->content};
         }
-        MiraiCode& operator=(const std::string& a) {
+        MiraiCode &operator=(const std::string &a) {
             this->content = a;
             return *this;
         }
-        MiraiCode plus(MiraiCodeable* a) {
-            return { content + a->toMiraiCode() };
+        MiraiCode plus(MiraiCodeable *a) {
+            return {content + a->toMiraiCode()};
         }
-        MiraiCode plus(const std::string& a) {
+        MiraiCode plus(const std::string &a) {
             return MiraiCode(a) + this;
         }
         /// 不执行转义，适用于已经被MiraiCode转义过的字符串
-        static MiraiCode MiraiCodeWithoutEscape(const std::string& a) {
-            return { a, false };
+        static MiraiCode MiraiCodeWithoutEscape(const std::string &a) {
+            return {a, false};
         }
         /// 不执行转义，因为MiraiCodeable的toMiraiCode已经转义过了
-        static MiraiCode MiraiCodeWithoutEscape(MiraiCodeable* a) {
-            return { a->toMiraiCode(), false };
+        static MiraiCode MiraiCodeWithoutEscape(MiraiCodeable *a) {
+            return {a->toMiraiCode(), false};
         }
     };
 } // namespace MiraiCP
@@ -4499,14 +4494,14 @@ namespace MiraiCP {
         /// @param content 内容
         /// @param prefix 前缀, 默认为`:`, 第二个冒号部分的内容, 目前在serviceMesage有使用
         SingleMessage(int type, std::string content, std::string prefix = ":") : type(type),
-            content(std::move(content)),
-            prefix(std::move(prefix)) {}
+                                                                                 content(std::move(content)),
+                                                                                 prefix(std::move(prefix)) {}
         virtual ~SingleMessage() = default;
     public:
         /// @brief 找对应类型的index key
         /// @param value 类型名
         /// @return 如果没找到返回-1
-        static int getKey(const std::string& value);
+        static int getKey(const std::string &value);
     public:
         virtual nlohmann::json toJson() const {
             nlohmann::json re;
@@ -4516,25 +4511,25 @@ namespace MiraiCP {
         }
         std::string toMiraiCode() const override;
     public:
-        bool operator==(const SingleMessage& m) const {
+        bool operator==(const SingleMessage &m) const {
             return this->type == m.type && this->toMiraiCode() == m.toMiraiCode();
         }
-        bool operator==(SingleMessage* m) const {
+        bool operator==(SingleMessage *m) const {
             return this->type == m->type && this->toMiraiCode() == m->toMiraiCode();
         }
     };
     /// 纯文本信息
     class PlainText : public SingleMessage {
     public:
-        explicit PlainText(const SingleMessage& sg);
+        explicit PlainText(const SingleMessage &sg);
         template<typename T>
-        explicit PlainText(const T& a) : SingleMessage(PlainText::type(), ([&a]() -> std::string {
-            std::stringstream sst;
-            sst << a;
-            return sst.str();
-            })()) {}
-            PlainText(PlainText&& _o) noexcept : SingleMessage(PlainText::type(), std::move(_o.content)) {}
-            PlainText(const PlainText& _o) : SingleMessage(PlainText::type(), _o.content) {}
+        explicit PlainText(const T &a) : SingleMessage(PlainText::type(), ([&a]() -> std::string {
+                                                           std::stringstream sst;
+                                                           sst << a;
+                                                           return sst.str();
+                                                       })()) {}
+        PlainText(PlainText &&_o) noexcept : SingleMessage(PlainText::type(), std::move(_o.content)) {}
+        PlainText(const PlainText &_o) : SingleMessage(PlainText::type(), _o.content) {}
     public:
         static int type() { return 0; }
     public:
@@ -4542,7 +4537,7 @@ namespace MiraiCP {
             return content;
         }
         nlohmann::json toJson() const override;
-        bool operator==(const PlainText& p) const {
+        bool operator==(const PlainText &p) const {
             return this->content == p.content;
         }
     };
@@ -4552,12 +4547,12 @@ namespace MiraiCP {
         static int type() { return 1; }
         QQID target;
         nlohmann::json toJson() const override;
-        explicit At(const SingleMessage& sg);
-        explicit At(QQID a) : SingleMessage(At::type(), std::to_string(a)), target(a) {};
+        explicit At(const SingleMessage &sg);
+        explicit At(QQID a) : SingleMessage(At::type(), std::to_string(a)), target(a){};
         std::string toMiraiCode() const override {
             return "[mirai:at:" + std::to_string(this->target) + "] "; // 后面有个空格
         }
-        bool operator==(const At& a) const {
+        bool operator==(const At &a) const {
             return this->target == a.target;
         }
     };
@@ -4616,14 +4611,14 @@ namespace MiraiCP {
         * @detail 图片miraiCode格式例子, `[mirai:image:{图片id}.jpg]`
         * 可以用这个正则表达式找出id `\\[mirai:image:(.*?)\\]`
         */
-        explicit Image(const std::string& imageId, size_t size = 0, int width = 0, int height = 0, int type = 5) : SingleMessage(Image::type(), imageId) {
+        explicit Image(const std::string &imageId, size_t size = 0, int width = 0, int height = 0, int type = 5) : SingleMessage(Image::type(), imageId) {
             this->id = imageId;
             this->size = size;
             this->width = width;
             this->height = height;
             this->imageType = type;
         }
-        explicit Image(const SingleMessage& sg);
+        explicit Image(const SingleMessage &sg);
         /// 刷新信息(获取图片下载Url,md5, size)
         void refreshInfo();
         /// 取图片Mirai码
@@ -4631,8 +4626,8 @@ namespace MiraiCP {
             return "[mirai:image:" + this->id + "]";
         }
         nlohmann::json toJson() const override;
-        static Image deserialize(const std::string&);
-        bool operator==(const Image& i) const {
+        static Image deserialize(const std::string &);
+        bool operator==(const Image &i) const {
             return this->id == i.id;
         }
     };
@@ -4643,14 +4638,14 @@ namespace MiraiCP {
         std::string toMiraiCode() const override {
             return "[mirai:flash:" + this->id + "]";
         }
-        explicit FlashImage(const std::string& imageId, size_t size = 0, int width = 0, int height = 0, int type = 0) : Image(imageId, size, width, height, type) {
+        explicit FlashImage(const std::string &imageId, size_t size = 0, int width = 0, int height = 0, int type = 0) : Image(imageId, size, width, height, type) {
             this->SingleMessage::type = 8;
         }
-        explicit FlashImage(const SingleMessage& sg) : Image(sg) {}
-        explicit FlashImage(const Image& img) : Image(img) {}
+        explicit FlashImage(const SingleMessage &sg) : Image(sg) {}
+        explicit FlashImage(const Image &img) : Image(img) {}
         nlohmann::json toJson() const override;
-        static FlashImage deserialize(const std::string&);
-        bool operator==(const FlashImage& i) const {
+        static FlashImage deserialize(const std::string &);
+        bool operator==(const FlashImage &i) const {
             return this->id == i.id;
         }
         /// 转换到普通图片
@@ -4667,11 +4662,11 @@ namespace MiraiCP {
         /// @brief 使用纯文本构造，推荐使用其他结构体方法构造
         /// @param content 构造文本
         explicit LightApp(std::string content) : SingleMessage(LightApp::type(), std::move(content)) {}
-        explicit LightApp(const SingleMessage& sg);
+        explicit LightApp(const SingleMessage &sg);
         nlohmann::json toJson() const override;
         /// 返回miraicode
         std::string toMiraiCode() const override;
-        bool operator==(const LightApp& la) const {
+        bool operator==(const LightApp &la) const {
             return this->content == la.content;
         }
     };
@@ -4687,19 +4682,19 @@ namespace MiraiCP {
         /// @param id 在xml内容前面的id (不包括逗号)
         /// @param a xml内容 (不需要事先转码到miraiCode)
         explicit ServiceMessage(int id, std::string a) : SingleMessage(ServiceMessage::type(), std::move(a),
-            ":" + std::to_string(id) + ','),
-            id(id) {}
-        explicit ServiceMessage(const SingleMessage& sg);
-        explicit ServiceMessage(const URLSharer& a) : SingleMessage(5,
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?><msg templateID=\"12345\" action=\"web\" brief=\"" +
-            a.brief + "\" serviceID=\"1\" url=\"" + a.url +
-            "\"><item layout=\"2\"><picture cover=\"" +
-            a.cover + "\"/><title>" + a.title +
-            "</title><summary>" + a.summary +
-            "</summary></item><source/></msg>",
-            ":1,"),
-            id(1) {}
-        bool operator==(const ServiceMessage& s) const {
+                                                                       ":" + std::to_string(id) + ','),
+                                                         id(id) {}
+        explicit ServiceMessage(const SingleMessage &sg);
+        explicit ServiceMessage(const URLSharer &a) : SingleMessage(5,
+                                                                    "<?xml version=\"1.0\" encoding=\"utf-8\"?><msg templateID=\"12345\" action=\"web\" brief=\"" +
+                                                                            a.brief + "\" serviceID=\"1\" url=\"" + a.url +
+                                                                            "\"><item layout=\"2\"><picture cover=\"" +
+                                                                            a.cover + "\"/><title>" + a.title +
+                                                                            "</title><summary>" + a.summary +
+                                                                            "</summary></item><source/></msg>",
+                                                                    ":1,"),
+                                                      id(1) {}
+        bool operator==(const ServiceMessage &s) const {
             return this->content == s.content;
         }
     };
@@ -4713,9 +4708,9 @@ namespace MiraiCP {
         }
         /// 引用信息的MessageSource
         MessageSource source;
-        explicit QuoteReply(const SingleMessage& m);
-        explicit QuoteReply(MessageSource source) : SingleMessage(QuoteReply::type(), source.serializeToString()), source(std::move(source)) {};
-        bool operator==(const QuoteReply& qr) const {
+        explicit QuoteReply(const SingleMessage &m);
+        explicit QuoteReply(MessageSource source) : SingleMessage(QuoteReply::type(), source.serializeToString()), source(std::move(source)){};
+        bool operator==(const QuoteReply &qr) const {
             return this->source == qr.source;
         }
     };
@@ -4740,10 +4735,10 @@ namespace MiraiCP {
             return "";
         }
         explicit OnlineAudio(std::string f, std::array<uint8_t, 16> md5, int size, int codec, int length,
-            std::string url) : SingleMessage(OnlineAudio::type(), ""),
-            filename(std::move(f)), md5(md5), size(size), codec(codec),
-            length(length), url(std::move(url)) {};
-        bool operator==(const OnlineAudio& oa) const {
+                             std::string url) : SingleMessage(OnlineAudio::type(), ""),
+                                                filename(std::move(f)), md5(md5), size(size), codec(codec),
+                                                length(length), url(std::move(url)){};
+        bool operator==(const OnlineAudio &oa) const {
             return this->md5 == oa.md5;
         }
     };
@@ -4797,7 +4792,7 @@ namespace MiraiCP {
         std::optional<Finfo> finfo;
         std::string serializeToString();
         RemoteFile plus(unsigned int ii);
-        static RemoteFile deserializeFromString(const std::string& source);
+        static RemoteFile deserializeFromString(const std::string &source);
         /*!
          * @brief 构造远程(群)文件
          * @param i ids
@@ -4808,7 +4803,7 @@ namespace MiraiCP {
          * @param d dinfo
          * @param f finfo
          */
-        explicit RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s, std::string p, struct Dinfo d, struct Finfo f);
+        explicit RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s, std::string p, struct Dinfo d, struct Finfo f);
         /*!
          * @brief 构造远程(群)文件
          * @param i ids
@@ -4819,12 +4814,12 @@ namespace MiraiCP {
          * @param d dinfo
          * @param f finfo
          */
-        explicit RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s);
+        explicit RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s);
         /// 上传后会自动发送
         ShouldNotUse("Cannot send manually, use Group.sendFile") std::string toMiraiCode() const override {
             return "";
         }
-        bool operator==(const RemoteFile& rf) const {
+        bool operator==(const RemoteFile &rf) const {
             return this->id == rf.id;
         }
     };
@@ -4839,7 +4834,7 @@ namespace MiraiCP {
             return "[mirai:face:" + std::to_string(id) + "]";
         }
         explicit Face(int id) : SingleMessage(Face::type(), std::to_string(id)), id(id) {}
-        bool operator==(const Face& f) const {
+        bool operator==(const Face &f) const {
             return this->id == f.id;
         }
     };
@@ -4864,7 +4859,7 @@ namespace MiraiCP {
         std::string toMiraiCode() const override {
             return "[mirai:musicshare:" + appName + "," + title + "," + summary + "," + jumpUrl + "," + picUrl + "," + musicUrl + "," + brief + "]";
         }
-        MusicShare(const std::string& appName, const std::string& title, const std::string& summary, const std::string& jumpUrl, const std::string& picUrl, const std::string& musicUrl, const std::string& brief) : SingleMessage(MusicShare::type(), ""), appName(appName), title(title), summary(summary), jumpUrl(jumpUrl), picUrl(picUrl), musicUrl(musicUrl), brief(brief) {}
+        MusicShare(const std::string &appName, const std::string &title, const std::string &summary, const std::string &jumpUrl, const std::string &picUrl, const std::string &musicUrl, const std::string &brief) : SingleMessage(MusicShare::type(), ""), appName(appName), title(title), summary(summary), jumpUrl(jumpUrl), picUrl(picUrl), musicUrl(musicUrl), brief(brief) {}
     };
     class MarketFace : public SingleMessage {
     public:
@@ -4875,7 +4870,7 @@ namespace MiraiCP {
         }
         std::array<uint8_t, 16> faceId;
         explicit MarketFace(std::array<uint8_t, 16> id) : SingleMessage(MarketFace::type(), ""), faceId(id) {}
-        bool operator==(const MarketFace& mf) const {
+        bool operator==(const MarketFace &mf) const {
             return this->faceId == mf.faceId;
         }
     };
@@ -4888,9 +4883,9 @@ namespace MiraiCP {
         ShouldNotUse("不支持直接发送UnSupportMessage") std::string toMiraiCode() const override {
             return "";
         }
-        explicit UnSupportMessage(const SingleMessage& s) : SingleMessage(s) {};
-        explicit UnSupportMessage(const std::string& content) : SingleMessage(UnSupportMessage::type(), content) {}
-        bool operator==(const UnSupportMessage& m) const {
+        explicit UnSupportMessage(const SingleMessage &s) : SingleMessage(s){};
+        explicit UnSupportMessage(const std::string &content) : SingleMessage(UnSupportMessage::type(), content) {}
+        bool operator==(const UnSupportMessage &m) const {
             return this->content == m.content;
         }
     };
@@ -4929,7 +4924,7 @@ namespace MiraiCP {
         /// @param a vector
         /// @return string
         template<typename T>
-        std::string VectorToString(const std::vector<T>& a, const std::string& separator = ",") {
+        std::string VectorToString(const std::vector<T> &a, const std::string &separator = ",") {
             std::stringstream ss;
             for (size_t i = 0; i < a.size(); ++i) {
                 if (i != 0)
@@ -4946,17 +4941,17 @@ namespace MiraiCP {
         /// @brief 从miraicode转义到正常
         /// @param s 经过miraicode转义的字符串
         /// @return 原字符串
-        std::string escapeFromMiraiCode(const std::string& s);
+        std::string escapeFromMiraiCode(const std::string &s);
         /// @brief 转义miraicode格式
-        std::string escapeToMiraiCode(const std::string& s);
+        std::string escapeToMiraiCode(const std::string &s);
         /// starts_with, from <https://stackoverflow.com/questions/1878001/how-do-i-check-if-a-c-stdstring-starts-with-a-certain-string-and-convert-a>
         bool starts_with(std::string_view f, std::string_view s);
         /// compare char with case-insensitive
-        bool icompareChar(const char& c1, const char& c2);
+        bool icompareChar(const char &c1, const char &c2);
         /// case insensitive string compare from https://thispointer.com/c-case-insensitive-string-comparison-using-stl-c11-boost-library/
         bool iequal(std::string_view str1, std::string_view str2);
         /// from https://www.zhihu.com/question/36642771, delim is regex(ignore last `+`)
-        std::vector<std::string> split(const std::string& text, const std::string& delim);
+        std::vector<std::string> split(const std::string &text, const std::string &delim);
     }; // namespace Tools
 } // namespace MiraiCP
 // #undef get_return_type
@@ -4995,7 +4990,7 @@ namespace MiraiCP {
      * @param msg 附加的string类型信息
      * @doxygenEg{1017, schedule.cpp, 定时任务}
      */
-    inline void schedule(long time, const std::string& msg) {
+    inline void schedule(long time, const std::string &msg) {
         nlohmann::json j;
         j["time"] = time;
         j["msg"] = msg;
@@ -5004,10 +4999,10 @@ namespace MiraiCP {
     /// 注册插件函数, 需要被实现, 类似onStart();
     void enrollPlugin();
     /// 用指针绑定插件
-    inline void enrollPlugin(CPPPlugin* p) {
+    inline void enrollPlugin(CPPPlugin *p) {
         CPPPlugin::plugin.reset(p);
     }
-    [[deprecated("use enrollPlugin instead")]] inline void enrollPlugin0(CPPPlugin* p) {
+    [[deprecated("use enrollPlugin instead")]] inline void enrollPlugin0(CPPPlugin *p) {
         enrollPlugin(p);
     }
 } // namespace MiraiCP
@@ -5019,9 +5014,9 @@ namespace MiraiCP {
 #endif
 #endif
 extern "C" {
-    MIRAICP_EXPORT void FUNC_ENTRANCE(const LibLoader::LoaderApi::interface_funcs&);
-    MIRAICP_EXPORT void FUNC_EVENT(const char* content);
-    MIRAICP_EXPORT void FUNC_EXIT();
-    MIRAICP_EXPORT const MiraiCP::PluginConfig& PLUGIN_INFO();
+MIRAICP_EXPORT void FUNC_ENTRANCE(const LibLoader::LoaderApi::interface_funcs &);
+MIRAICP_EXPORT void FUNC_EVENT(const char *content);
+MIRAICP_EXPORT void FUNC_EXIT();
+MIRAICP_EXPORT const MiraiCP::PluginConfig &PLUGIN_INFO();
 }
 #endif //MIRAICP_PRO_UTILS_H

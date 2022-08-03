@@ -19,12 +19,12 @@
 //from include/Bot.cpp
 namespace MiraiCP {
     Group Bot::getGroup(QQID groupid) const {
-        return { groupid, this->id };
+        return {groupid, this->id};
     }
     Friend Bot::getFriend(QQID i) const {
         return Friend(i, this->id);
     }
-    bool Bot::operator==(const Contact& c) const {
+    bool Bot::operator==(const Contact &c) const {
         return this->id == c.id();
     }
     void Bot::refreshInfo() {
@@ -60,7 +60,7 @@ namespace MiraiCP {
     // 静态区代码一般不会使用logger，虽是ub，但应该不会造成影响；
     // 静态区强行调用的话，因为loggerInterface尚未传入，若logger尚未初始化，访问Logger::logger将是ub
     // 可以考虑把logger做成纯静态实现？以及最好做成 Logger * const
-    Logger* CPPPlugin::pluginLogger = &Logger::logger;
+    Logger *CPPPlugin::pluginLogger = &Logger::logger;
     std::unique_ptr<CPPPlugin> CPPPlugin::plugin = nullptr;
 } // namespace MiraiCP
 //from include/Command.cpp
@@ -70,7 +70,7 @@ namespace MiraiCP {
 //from include/Contact.cpp
 namespace MiraiCP {
     using json = nlohmann::json;
-    MessageSource Contact::sendMsg0(const std::string& msg, int retryTime, bool miraicode) const {
+    MessageSource Contact::sendMsg0(const std::string &msg, int retryTime, bool miraicode) const {
         if (msg.empty()) {
             throw IllegalArgumentException("不能发送空信息, 位置: Contact::SendMsg", MIRAICP_EXCEPTION_WHERE);
         }
@@ -78,7 +78,7 @@ namespace MiraiCP {
         ErrorHandle(re, "");
         return MessageSource::deserializeFromString(re);
     }
-    MessageSource Contact::quoteAndSend0(const std::string& msg, MessageSource ms) {
+    MessageSource Contact::quoteAndSend0(const std::string &msg, MessageSource ms) {
         json obj;
         json sign;
         obj["messageSource"] = ms.serializeToString();
@@ -90,24 +90,23 @@ namespace MiraiCP {
         ErrorHandle(re, "");
         return MessageSource::deserializeFromString(re);
     }
-    Image Contact::uploadImg(const std::string& path) const {
+    Image Contact::uploadImg(const std::string &path) const {
         std::string re = LowLevelAPI::uploadImg0(path, this->toString());
         if (re == "E2")
             throw UploadException("上传图片大小超过30MB,路径:" + path, MIRAICP_EXCEPTION_WHERE);
         return Image::deserialize(re);
     }
-    FlashImage Contact::uploadFlashImg(const std::string& path) const {
+    FlashImage Contact::uploadFlashImg(const std::string &path) const {
         std::string re = LowLevelAPI::uploadImg0(path, this->toString());
         if (re == "E2")
             throw UploadException("上传图片大小超过30MB,路径:" + path, MIRAICP_EXCEPTION_WHERE);
         return FlashImage::deserialize(re);
     }
-    Contact Contact::deserialize(const std::string& source) {
+    Contact Contact::deserialize(const std::string &source) {
         json j;
         try {
             j = json::parse(source);
-        }
-        catch (json::parse_error& e) {
+        } catch (json::parse_error &e) {
             Logger::logger.error("json序列化错误 Contact::deserializationFromString");
             Logger::logger.error(source);
             Logger::logger.error(e.what());
@@ -116,13 +115,13 @@ namespace MiraiCP {
     }
     Contact Contact::deserialize(nlohmann::json j) {
         return Contact(j["type"],
-            j["id"],
-            j["groupid"],
-            j["nickornamecard"],
-            j["botid"],
-            j["anonymous"]);
+                       j["id"],
+                       j["groupid"],
+                       j["nickornamecard"],
+                       j["botid"],
+                       j["anonymous"]);
     }
-    MessageSource Contact::sendVoice0(const std::string& path) {
+    MessageSource Contact::sendVoice0(const std::string &path) {
         json j;
         json source;
         source["path"] = path;
@@ -131,8 +130,7 @@ namespace MiraiCP {
         std::string re = KtOperation::ktOperation(KtOperation::Voice, j);
         if (re == "E1") {
             throw UploadException("上传语音文件格式不对(必须为.amr/.silk)或文件不存在", MIRAICP_EXCEPTION_WHERE);
-        }
-        else if (re == "E2") {
+        } else if (re == "E2") {
             throw UploadException("上传语音文件大小超过服务器限制，一般限制在1MB上下", MIRAICP_EXCEPTION_WHERE);
         }
         return MessageSource::deserializeFromString(re);
@@ -142,7 +140,7 @@ namespace MiraiCP {
 namespace MiraiCP {
     using json = nlohmann::json;
     Event Event::processor;
-    void GroupInviteEvent::operation0(const std::string& source, QQID botid, bool accept) {
+    void GroupInviteEvent::operation0(const std::string &source, QQID botid, bool accept) {
         nlohmann::json j;
         j["text"] = source;
         j["accept"] = accept;
@@ -183,7 +181,7 @@ namespace MiraiCP {
         json re = json::parse(r);
         return MessageChain::deserializationFromMessageSourceJson(json::parse(re["messageSource"].get<std::string>())).plus(MessageSource::deserializeFromString(re["messageSource"]));
     }
-    void NewFriendRequestEvent::operation0(const std::string& source, QQID botid, bool accept, bool ban) {
+    void NewFriendRequestEvent::operation0(const std::string &source, QQID botid, bool accept, bool ban) {
         nlohmann::json j;
         j["text"] = source;
         j["accept"] = accept;
@@ -192,7 +190,7 @@ namespace MiraiCP {
         std::string re = KtOperation::ktOperation(KtOperation::Nfroperation, j);
         if (re == "E") Logger::logger.error("好友申请事件同意失败(可能因为重复处理),id:" + source);
     }
-    void MemberJoinRequestEvent::operate(std::string_view s, QQID botid, bool sign, const std::string& msg) {
+    void MemberJoinRequestEvent::operate(std::string_view s, QQID botid, bool sign, const std::string &msg) {
         nlohmann::json j;
         j["source"] = s;
         j["botid"] = botid;
@@ -202,136 +200,136 @@ namespace MiraiCP {
     }
     void Event::incomingEvent(json j, int type) {
         switch (type) {
-        case eventTypes::GroupMessageEvent: {
-            //GroupMessage
-            Event::broadcast<GroupMessageEvent>(
-                GroupMessageEvent(j["group"]["botid"],
-                    Group(Group::deserialize(j["group"])),
-                    Member(Member::deserialize(j["member"])),
-                    MessageChain::deserializationFromMessageSourceJson(json::parse(j["source"].get<std::string>()))
-                    .plus(MessageSource::deserializeFromString(j["source"].get<std::string>()))));
-            break;
-        }
-        case eventTypes::PrivateMessageEvent: {
-            //私聊消息
-            Event::broadcast<PrivateMessageEvent>(
-                PrivateMessageEvent(j["friend"]["botid"],
-                    Friend(Friend::deserialize(j["friend"])),
-                    MessageChain::deserializationFromMessageSourceJson(json::parse(j["source"].get<std::string>()))
-                    .plus(MessageSource::deserializeFromString(j["source"].get<std::string>()))));
-            break;
-        }
-        case eventTypes::GroupInviteEvent:
-            //群聊邀请
-            Event::broadcast<GroupInviteEvent>(
-                GroupInviteEvent(
-                    j["source"]["botid"],
-                    j["request"],
-                    j["source"]["inviternick"],
-                    j["source"]["inviterid"],
-                    j["source"]["groupname"],
-                    j["source"]["groupid"]));
-            break;
-        case eventTypes::NewFriendRequestEvent:
-            //好友
-            Event::broadcast<NewFriendRequestEvent>(
-                NewFriendRequestEvent(
-                    j["source"]["botid"],
-                    j["request"],
-                    j["source"]["fromid"],
-                    j["source"]["fromgroupid"],
-                    j["source"]["fromnick"],
-                    j["source"]["message"]));
-            break;
-        case eventTypes::MemberJoinEvent:
-            //新成员加入
-            Event::broadcast<MemberJoinEvent>(
-                MemberJoinEvent(
-                    j["group"]["botid"],
-                    j["jointype"],
-                    Member(Member::deserialize(j["member"])),
-                    Group(Group::deserialize(j["group"])),
-                    j["inviterid"]));
-            break;
-        case eventTypes::MemberLeaveEvent:
-            //群成员退出
-            Event::broadcast<MemberLeaveEvent>(MemberLeaveEvent(
-                j["group"]["botid"],
-                j["leavetype"],
-                j["memberid"],
-                Group(Group::deserialize(j["group"])),
-                j["operatorid"]));
-            break;
-        case eventTypes::RecallEvent:
-            Event::broadcast<RecallEvent>(RecallEvent(
-                j["botid"],
-                j["etype"],
-                j["time"],
-                j["authorid"],
-                j["operatorid"],
-                j["ids"],
-                j["internalids"],
-                j["groupid"]));
-            break;
-        case eventTypes::BotJoinGroupEvent:
-            Event::broadcast<BotJoinGroupEvent>(BotJoinGroupEvent(
-                j["group"]["botid"],
-                j["etype"],
-                Group(Group::deserialize(j["group"])),
-                j["inviterid"]));
-            break;
-        case eventTypes::GroupTempMessageEvent:
-            Event::broadcast<GroupTempMessageEvent>(GroupTempMessageEvent(
-                j["group"]["botid"],
-                Group(Group::deserialize(j["group"])),
-                Member(Member::deserialize(j["member"])),
-                MessageChain::deserializationFromMessageSourceJson(json::parse(j["message"].get<std::string>()))
-                .plus(MessageSource::deserializeFromString(j["source"]))));
-            break;
-        case eventTypes::TimeOutEvent:
-            Event::broadcast(TimeOutEvent(j["msg"]));
-            break;
-        case eventTypes::BotOnlineEvent:
-            Event::broadcast(BotOnlineEvent(j["botid"]));
-            break;
-        case eventTypes::NudgeEvent:
-            Event::broadcast(NudgeEvent(Contact::deserialize(j["from"]),
-                Contact::deserialize(j["target"]),
-                Contact::deserialize(j["subject"]),
-                j["botid"]));
-            break;
-        case eventTypes::BotLeaveEvent:
-            Event::broadcast(BotLeaveEvent(j["groupid"], j["botid"]));
-            break;
-        case eventTypes::MemberJoinRequestEvent: {
-            std::optional<Group> a;
-            std::optional<Member> b;
-            Contact temp = Contact::deserialize(j["group"]);
-            if (temp.id() == 0)
-                a = std::nullopt;
-            else
-                a = Group(temp);
-            temp = Contact::deserialize(j["inviter"]);
-            if (temp.id() == 0)
-                b = std::nullopt;
-            else
-                b = Member(temp);
-            Event::broadcast(MemberJoinRequestEvent(a, b, temp.botid(), j["requester"], j["requestData"]));
-            break;
-        }
-        case eventTypes::MessagePreSendEvent: {
-            Event::broadcast(MessagePreSendEvent(Contact::deserialize(j["target"]), MessageChain::deserializationFromMessageSourceJson(j["message"].get<std::string>(), false), j["botid"]));
-            break;
-        }
-        case eventTypes::Command: {
-            // command
-            std::optional<Contact> c = std::nullopt;
-            if (j.contains("contact")) c = Contact::deserialize(j["contact"]);
-            CommandManager::commandManager[j["bindId"]]->onCommand(c, Bot(j["botid"]), MessageChain::deserializationFromMessageSourceJson((j.contains("message") ? j["message"].get<std::string>() : ""), false));
-            break;
-        }
-        default:
-            throw APIException("Unreachable code", MIRAICP_EXCEPTION_WHERE);
+            case eventTypes::GroupMessageEvent: {
+                //GroupMessage
+                Event::broadcast<GroupMessageEvent>(
+                        GroupMessageEvent(j["group"]["botid"],
+                                          Group(Group::deserialize(j["group"])),
+                                          Member(Member::deserialize(j["member"])),
+                                          MessageChain::deserializationFromMessageSourceJson(json::parse(j["source"].get<std::string>()))
+                                                  .plus(MessageSource::deserializeFromString(j["source"].get<std::string>()))));
+                break;
+            }
+            case eventTypes::PrivateMessageEvent: {
+                //私聊消息
+                Event::broadcast<PrivateMessageEvent>(
+                        PrivateMessageEvent(j["friend"]["botid"],
+                                            Friend(Friend::deserialize(j["friend"])),
+                                            MessageChain::deserializationFromMessageSourceJson(json::parse(j["source"].get<std::string>()))
+                                                    .plus(MessageSource::deserializeFromString(j["source"].get<std::string>()))));
+                break;
+            }
+            case eventTypes::GroupInviteEvent:
+                //群聊邀请
+                Event::broadcast<GroupInviteEvent>(
+                        GroupInviteEvent(
+                                j["source"]["botid"],
+                                j["request"],
+                                j["source"]["inviternick"],
+                                j["source"]["inviterid"],
+                                j["source"]["groupname"],
+                                j["source"]["groupid"]));
+                break;
+            case eventTypes::NewFriendRequestEvent:
+                //好友
+                Event::broadcast<NewFriendRequestEvent>(
+                        NewFriendRequestEvent(
+                                j["source"]["botid"],
+                                j["request"],
+                                j["source"]["fromid"],
+                                j["source"]["fromgroupid"],
+                                j["source"]["fromnick"],
+                                j["source"]["message"]));
+                break;
+            case eventTypes::MemberJoinEvent:
+                //新成员加入
+                Event::broadcast<MemberJoinEvent>(
+                        MemberJoinEvent(
+                                j["group"]["botid"],
+                                j["jointype"],
+                                Member(Member::deserialize(j["member"])),
+                                Group(Group::deserialize(j["group"])),
+                                j["inviterid"]));
+                break;
+            case eventTypes::MemberLeaveEvent:
+                //群成员退出
+                Event::broadcast<MemberLeaveEvent>(MemberLeaveEvent(
+                        j["group"]["botid"],
+                        j["leavetype"],
+                        j["memberid"],
+                        Group(Group::deserialize(j["group"])),
+                        j["operatorid"]));
+                break;
+            case eventTypes::RecallEvent:
+                Event::broadcast<RecallEvent>(RecallEvent(
+                        j["botid"],
+                        j["etype"],
+                        j["time"],
+                        j["authorid"],
+                        j["operatorid"],
+                        j["ids"],
+                        j["internalids"],
+                        j["groupid"]));
+                break;
+            case eventTypes::BotJoinGroupEvent:
+                Event::broadcast<BotJoinGroupEvent>(BotJoinGroupEvent(
+                        j["group"]["botid"],
+                        j["etype"],
+                        Group(Group::deserialize(j["group"])),
+                        j["inviterid"]));
+                break;
+            case eventTypes::GroupTempMessageEvent:
+                Event::broadcast<GroupTempMessageEvent>(GroupTempMessageEvent(
+                        j["group"]["botid"],
+                        Group(Group::deserialize(j["group"])),
+                        Member(Member::deserialize(j["member"])),
+                        MessageChain::deserializationFromMessageSourceJson(json::parse(j["message"].get<std::string>()))
+                                .plus(MessageSource::deserializeFromString(j["source"]))));
+                break;
+            case eventTypes::TimeOutEvent:
+                Event::broadcast(TimeOutEvent(j["msg"]));
+                break;
+            case eventTypes::BotOnlineEvent:
+                Event::broadcast(BotOnlineEvent(j["botid"]));
+                break;
+            case eventTypes::NudgeEvent:
+                Event::broadcast(NudgeEvent(Contact::deserialize(j["from"]),
+                                            Contact::deserialize(j["target"]),
+                                            Contact::deserialize(j["subject"]),
+                                            j["botid"]));
+                break;
+            case eventTypes::BotLeaveEvent:
+                Event::broadcast(BotLeaveEvent(j["groupid"], j["botid"]));
+                break;
+            case eventTypes::MemberJoinRequestEvent: {
+                std::optional<Group> a;
+                std::optional<Member> b;
+                Contact temp = Contact::deserialize(j["group"]);
+                if (temp.id() == 0)
+                    a = std::nullopt;
+                else
+                    a = Group(temp);
+                temp = Contact::deserialize(j["inviter"]);
+                if (temp.id() == 0)
+                    b = std::nullopt;
+                else
+                    b = Member(temp);
+                Event::broadcast(MemberJoinRequestEvent(a, b, temp.botid(), j["requester"], j["requestData"]));
+                break;
+            }
+            case eventTypes::MessagePreSendEvent: {
+                Event::broadcast(MessagePreSendEvent(Contact::deserialize(j["target"]), MessageChain::deserializationFromMessageSourceJson(j["message"].get<std::string>(), false), j["botid"]));
+                break;
+            }
+            case eventTypes::Command: {
+                // command
+                std::optional<Contact> c = std::nullopt;
+                if (j.contains("contact")) c = Contact::deserialize(j["contact"]);
+                CommandManager::commandManager[j["bindId"]]->onCommand(c, Bot(j["botid"]), MessageChain::deserializationFromMessageSourceJson((j.contains("message") ? j["message"].get<std::string>() : ""), false));
+                break;
+            }
+            default:
+                throw APIException("Unreachable code", MIRAICP_EXCEPTION_WHERE);
         }
     }
 } // namespace MiraiCP
@@ -353,7 +351,7 @@ namespace MiraiCP {
     using json = nlohmann::json;
     json ForwardedMessage::nodesToJson() {
         json value;
-        for (const ForwardedNode& node : nodes) {
+        for (const ForwardedNode &node: nodes) {
             json temp;
             temp["id"] = node.id;
             temp["time"] = node.time;
@@ -362,8 +360,7 @@ namespace MiraiCP {
                 temp["message"] = std::get<std::shared_ptr<ForwardedMessage>>(node.message)->nodesToJson().dump();
                 if (display.has_value())
                     temp["display"] = display->toJson();
-            }
-            else
+            } else
                 temp["message"] = std::get<MessageChain>(node.message).toMiraiCode();
             temp["name"] = node.name;
             value.emplace_back(std::move(temp));
@@ -373,7 +370,7 @@ namespace MiraiCP {
         return tmp;
     }
     //发送这个聊天记录
-    MessageSource ForwardedMessage::sendTo(Contact* c) {
+    MessageSource ForwardedMessage::sendTo(Contact *c) {
         json temp;
         json text;
         text["id"] = c->id();
@@ -388,36 +385,32 @@ namespace MiraiCP {
         ErrorHandle(re, "");
         return MessageSource::deserializeFromString(re);
     }
-    ForwardedMessage ForwardedMessage::deserializationFromMessageSourceJson(const json& j) {
+    ForwardedMessage ForwardedMessage::deserializationFromMessageSourceJson(const json &j) {
         std::vector<ForwardedNode> nodes;
         try {
-            for (auto&& a : j) {
+            for (auto &&a: j) {
                 if (a["messageChain"][0].contains("kind") && a["messageChain"][0]["kind"] == "FORWARD") {
                     nodes.emplace_back(a["senderId"], a["senderName"], ForwardedMessage::deserializationFromMessageSourceJson(a["messageChain"][1]["nodeList"]), a["time"], ForwardedMessageDisplayStrategy::defaultStrategy());
-                }
-                else {
+                } else {
                     nodes.emplace_back(a["senderId"], a["senderName"], MessageChain::deserializationFromMessageSourceJson(a["messageChain"], false), a["time"]);
                 }
             }
-        }
-        catch (json::exception& e) {
+        } catch (json::exception &e) {
             throw APIException("ForwardedMessage格式化异常", MIRAICP_EXCEPTION_WHERE);
         }
-        return { std::move(nodes), ForwardedMessageDisplayStrategy::defaultStrategy() };
+        return {std::move(nodes), ForwardedMessageDisplayStrategy::defaultStrategy()};
     }
-    OnlineForwardedMessage OnlineForwardedMessage::deserializationFromMessageSourceJson(const json& j) {
+    OnlineForwardedMessage OnlineForwardedMessage::deserializationFromMessageSourceJson(const json &j) {
         std::vector<ForwardedNode> nodes;
         try {
-            for (auto&& a : j[1]["nodeList"]) {
+            for (auto &&a: j[1]["nodeList"]) {
                 if (a["messageChain"][0].contains("kind") && a["messageChain"][0]["kind"] == "FORWARD") {
                     nodes.emplace_back(a["senderId"], a["senderName"], ForwardedMessage::deserializationFromMessageSourceJson(a["messageChain"][1]["nodeList"]), a["time"], ForwardedMessageDisplayStrategy::defaultStrategy());
-                }
-                else {
+                } else {
                     nodes.emplace_back(a["senderId"], a["senderName"], MessageChain::deserializationFromMessageSourceJson(a["messageChain"], false), a["time"]);
                 }
             }
-        }
-        catch (json::parse_error& e) {
+        } catch (json::parse_error &e) {
             throw APIException("OnlineForwardedMessage格式化异常", MIRAICP_EXCEPTION_WHERE);
         }
         //if (j[0].contains("resourceId") && !j[0]["resourceId"].is_null())
@@ -427,28 +420,28 @@ namespace MiraiCP {
     }
     ForwardedNode::ForwardedNode(QQID id, std::string name, ForwardedMessage _message, int t, std::optional<ForwardedMessageDisplayStrategy> display)
         : id(id), name(std::move(name)),
-        message(std::make_shared<ForwardedMessage>(std::move(_message))),
-        time(t), isForwardedMessage(true), display(std::move(display)) {}
+          message(std::make_shared<ForwardedMessage>(std::move(_message))),
+          time(t), isForwardedMessage(true), display(std::move(display)) {}
     /*
     ForwardedNode::ForwardedNode(Contact *c, MessageChain message, int t) : id(c->id()), name(c->nickOrNameCard()),
                                                                             message(std::move(message)),
                                                                             time(t) {}
     ForwardedNode::ForwardedNode(QQID id, std::string name, ForwardedMessage &message, int t) : id(id), name(std::move(name)), forwardedMsg(&message), time(t) {}
     */
-    bool OnlineForwardedMessage::operator==(const OnlineForwardedMessage& m) const {
+    bool OnlineForwardedMessage::operator==(const OnlineForwardedMessage &m) const {
         if (this->nodelist.size() != m.nodelist.size())
             return false;
         int i = 0;
-        return std::all_of(this->nodelist.begin(), this->nodelist.end(), [&](const auto& n) {
+        return std::all_of(this->nodelist.begin(), this->nodelist.end(), [&](const auto &n) {
             return n.message == m[i++].message;
-            });
+        });
         //        for (int i = 0; i < this->nodelist.size(); i++)
         //            if (this->nodelist[i].message != m[i].message)
         //                return false;
         //        return true;
     }
     ForwardedMessage OnlineForwardedMessage::toForwardedMessage(std::optional<ForwardedMessageDisplayStrategy> display) const {
-        return { this->nodelist, std::move(display) };
+        return {this->nodelist, std::move(display)};
     }
 } // namespace MiraiCP
 //from include/Friend.cpp
@@ -496,7 +489,7 @@ namespace MiraiCP {
         j["announcement"] = true;
         std::string re = KtOperation::ktOperation(KtOperation::RefreshInfo, j);
         std::vector<OnlineAnnouncement> oa;
-        for (const json& e : json::parse(re)) {
+        for (const json &e: json::parse(re)) {
             oa.push_back(Group::OnlineAnnouncement::deserializeFromJson(e));
         }
         return oa;
@@ -523,7 +516,7 @@ namespace MiraiCP {
         j["requireConfirmation"] = this->requireConfirm;
         return j;
     }
-    Group::OnlineAnnouncement Group::OfflineAnnouncement::publishTo(const Group& g) {
+    Group::OnlineAnnouncement Group::OfflineAnnouncement::publishTo(const Group &g) {
         json j, i, s;
         i["botid"] = g.botid();
         i["groupid"] = g.id();
@@ -535,23 +528,23 @@ namespace MiraiCP {
         std::string re = KtOperation::ktOperation(KtOperation::Announcement, j);
         return Group::OnlineAnnouncement::deserializeFromJson(json::parse(re));
     }
-    Group::OnlineAnnouncement Group::OnlineAnnouncement::deserializeFromJson(const json& j) {
+    Group::OnlineAnnouncement Group::OnlineAnnouncement::deserializeFromJson(const json &j) {
         Group::AnnouncementParams ap(
-            j["params"]["sendToNewMember"],
-            j["params"]["requireConfirmation"],
-            j["params"]["isPinned"],
-            j["params"]["showEditCard"],
-            j["params"]["showPopup"]);
+                j["params"]["sendToNewMember"],
+                j["params"]["requireConfirmation"],
+                j["params"]["isPinned"],
+                j["params"]["showEditCard"],
+                j["params"]["showPopup"]);
         return Group::OnlineAnnouncement(
-            j["content"],
-            ap,
-            j["groupid"],
-            j["senderid"],
-            j["botid"],
-            j["time"],
-            j["fid"],
-            j["confirmationNum"],
-            j["imageid"]);
+                j["content"],
+                ap,
+                j["groupid"],
+                j["senderid"],
+                j["botid"],
+                j["time"],
+                j["fid"],
+                j["confirmationNum"],
+                j["imageid"]);
     }
     std::vector<unsigned long long> Group::getMemberList() {
         nlohmann::json j;
@@ -599,7 +592,7 @@ namespace MiraiCP {
         std::string re = KtOperation::ktOperation(KtOperation::GroupSetting, tmp);
         refreshInfo();
     }
-    RemoteFile Group::sendFile(const std::string& path, const std::string& filepath) {
+    RemoteFile Group::sendFile(const std::string &path, const std::string &filepath) {
         json tmp;
         json source;
         source["path"] = path;
@@ -612,7 +605,7 @@ namespace MiraiCP {
             throw UploadException("Upload error:路径格式异常，应为'/xxx.xxx'或'/xx/xxx.xxx'目前只支持群文件和单层路径, path:" + path, MIRAICP_EXCEPTION_WHERE);
         return RemoteFile::deserializeFromString(callback);
     }
-    RemoteFile Group::getFile(const std::string& path, const std::string& id) {
+    RemoteFile Group::getFile(const std::string &path, const std::string &id) {
         // source 参数
         if (path.empty() || path == "/")
             return this->getFileById(id);
@@ -626,7 +619,7 @@ namespace MiraiCP {
         if (re == "E2") throw RemoteAssetException("Get error: 文件路径不存在, path:" + path + ",id:" + id, MIRAICP_EXCEPTION_WHERE);
         return RemoteFile::deserializeFromString(re);
     }
-    RemoteFile Group::getFileById(const std::string& id) {
+    RemoteFile Group::getFileById(const std::string &id) {
         json tmp;
         json j;
         tmp["id"] = id;
@@ -642,7 +635,7 @@ namespace MiraiCP {
         std::string re = KtOperation::ktOperation(KtOperation::QueryOwner, j);
         return Member(stoi(re), this->id(), this->botid());
     }
-    std::string Group::getFileListString(const std::string& path) {
+    std::string Group::getFileListString(const std::string &path) {
         json temp;
         json j;
         temp["id"] = "-1";
@@ -651,11 +644,11 @@ namespace MiraiCP {
         j["contactSource"] = this->toString();
         return KtOperation::ktOperation(KtOperation::RemoteFileInfo, j);
     }
-    std::vector<Group::file_short_info> Group::getFileList(const std::string& path) {
+    std::vector<Group::file_short_info> Group::getFileList(const std::string &path) {
         std::vector<file_short_info> re = std::vector<file_short_info>();
         std::string tmp = getFileListString(path);
         json root = json::parse(tmp);
-        for (auto& i : root) {
+        for (auto &i: root) {
             file_short_info t;
             t.path = i[0];
             t.id = i[1];
@@ -672,7 +665,7 @@ namespace MiraiCP {
 } // namespace MiraiCP
 //from include/KtOperation.cpp
 namespace MiraiCP::KtOperation {
-    std::string ktOperation(operation_set type, nlohmann::json data, bool catchErr, const std::string& errorInfo) {
+    std::string ktOperation(operation_set type, nlohmann::json data, bool catchErr, const std::string &errorInfo) {
         nlohmann::json j;
         j["type"] = type;
         j["data"] = std::move(data);
@@ -685,10 +678,10 @@ namespace MiraiCP::KtOperation {
 //from include/Logger.cpp
 namespace MiraiCP {
     Logger Logger::logger;
-    void Logger::log_interface(const std::string& content, int level) {
+    void Logger::log_interface(const std::string &content, int level) {
         LibLoader::LoaderApi::loggerInterface(content.c_str(), ("plugin/" + MiraiCP::CPPPlugin::config.getName()).c_str(), -1, level);
     }
-    void IdLogger::log_interface(const std::string& content, int level) {
+    void IdLogger::log_interface(const std::string &content, int level) {
         LibLoader::LoaderApi::loggerInterface(content.c_str(), "", static_cast<long long>(id), level);
     }
 } // namespace MiraiCP
@@ -696,8 +689,8 @@ namespace MiraiCP {
 #include <utility>
 namespace MiraiCP {
     using json = nlohmann::json;
-    std::string LowLevelAPI::send0(const std::string& content, json c, int retryTime, bool miraicode,
-        const std::string& errorInfo) {
+    std::string LowLevelAPI::send0(const std::string &content, json c, int retryTime, bool miraicode,
+                                   const std::string &errorInfo) {
         nlohmann::json j;
         nlohmann::json tmp;
         tmp["content"] = content;
@@ -707,7 +700,7 @@ namespace MiraiCP {
         j["retryTime"] = retryTime;
         return KtOperation::ktOperation(KtOperation::Send, j, true, errorInfo);
     }
-    LowLevelAPI::info LowLevelAPI::info0(const std::string& source) {
+    LowLevelAPI::info LowLevelAPI::info0(const std::string &source) {
         info re;
         ErrorHandle(source, "");
         nlohmann::json j = nlohmann::json::parse(source);
@@ -715,12 +708,12 @@ namespace MiraiCP {
         re.nickornamecard = j["nickornamecard"];
         return re;
     }
-    std::string LowLevelAPI::getInfoSource(const std::string& c) {
+    std::string LowLevelAPI::getInfoSource(const std::string &c) {
         nlohmann::json j;
         j["source"] = c;
         return KtOperation::ktOperation(KtOperation::RefreshInfo, j);
     }
-    std::string LowLevelAPI::uploadImg0(const std::string& path, const std::string& c) {
+    std::string LowLevelAPI::uploadImg0(const std::string &path, const std::string &c) {
         nlohmann::json j;
         j["fileName"] = path;
         j["source"] = c;
@@ -773,7 +766,7 @@ namespace MiraiCP {
         if (re == "E4")
             throw MuteException(MIRAICP_EXCEPTION_WHERE);
     }
-    void Member::kick(const std::string& reason) {
+    void Member::kick(const std::string &reason) {
         json j;
         j["message"] = reason;
         j["contactSource"] = this->toString();
@@ -822,7 +815,7 @@ namespace MiraiCP {
         return MessageSource::deserializeFromString(re);
     }
     //message chain
-    MessageChain MessageChain::deserializationFromMiraiCode(const std::string& m) {
+    MessageChain MessageChain::deserializationFromMiraiCode(const std::string &m) {
         size_t pos = 0;
         size_t lastPos = -1;
         MessageChain mc;
@@ -840,54 +833,54 @@ namespace MiraiCP {
                 size_t i = tmp.find(':'); // first :
                 int t = SingleMessage::getKey(tmp.substr(0, i));
                 switch (t) {
-                case 0:
-                    // no miraiCode key is PlainText
-                    Logger::logger.error("无法预料的错误, 信息: " + m);
-                    break;
-                case 1:
-                    mc.add(At(std::stoll(tmp.substr(i + 1, tmp.length() - i - 1))));
-                    break;
-                case 2:
-                    mc.add(AtAll());
-                    break;
-                case 3:
-                    mc.add(Image(tmp.substr(i + 1, tmp.length() - i - 1)));
-                    break;
-                case 4:
-                    mc.add(LightApp(tmp.substr(i + 1, tmp.length() - i - 1)));
-                    break;
-                case 5: {
-                    size_t comma = tmp.find(',');
-                    mc.add(ServiceMessage(std::stoi(tmp.substr(i + 1, comma - i - 1)),
-                        tmp.substr(comma + 1, tmp.length() - comma - 1)));
-                    break;
-                }
-                case 6: {
-                    //[mirai:file:/b53231e8-46dd-11ec-8ba5-5452007bd6c0,102,run.bat,55]
-                    size_t comma1 = tmp.find(',');
-                    size_t comma2 = tmp.find(',', comma1 + 1);
-                    size_t comma3 = tmp.find(',', comma2 + 1);
-                    mc.add(RemoteFile(tmp.substr(i + 1, comma1 - i - 1), std::stoi(tmp.substr(comma1 + 1, comma2 - comma1 - 1)), tmp.substr(comma2 + 1, comma3 - comma2 - 1), std::stoll(tmp.substr(comma3 + 1, tmp.length() - comma3 - 1))));
-                    break;
-                }
-                case 7:
-                    mc.add(Face(std::stoi(tmp.substr(i + 1, tmp.length() - i - 1))));
-                    break;
-                case 8:
-                    mc.add(FlashImage(tmp.substr(i + 1, tmp.length() - i - 1)));
-                    break;
-                case 9: {
-                    //[mirai:musicshare:name,title,summary,jUrl,pUrl,mUrl,brief]
-                    auto temp = Tools::split(tmp.substr(i + 1, tmp.length() - i - 1), ",");
-                    mc.add(MusicShare(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6]));
-                    break;
-                }
-                default:
-                    Logger::logger.error(
-                        "MiraiCP碰到了意料之中的错误(原因:部分SimpleMessage在MiraiCode解析支持之外)\n请到MiraiCP(github.com/Nambers/MiraiCP)发送issue并复制本段信息使MiraiCP可以支持这种消息: MiraiCode:" +
-                        m);
-                    mc.add(UnSupportMessage("[mirai:" + tmp));
-                    break;
+                    case 0:
+                        // no miraiCode key is PlainText
+                        Logger::logger.error("无法预料的错误, 信息: " + m);
+                        break;
+                    case 1:
+                        mc.add(At(std::stoll(tmp.substr(i + 1, tmp.length() - i - 1))));
+                        break;
+                    case 2:
+                        mc.add(AtAll());
+                        break;
+                    case 3:
+                        mc.add(Image(tmp.substr(i + 1, tmp.length() - i - 1)));
+                        break;
+                    case 4:
+                        mc.add(LightApp(tmp.substr(i + 1, tmp.length() - i - 1)));
+                        break;
+                    case 5: {
+                        size_t comma = tmp.find(',');
+                        mc.add(ServiceMessage(std::stoi(tmp.substr(i + 1, comma - i - 1)),
+                                              tmp.substr(comma + 1, tmp.length() - comma - 1)));
+                        break;
+                    }
+                    case 6: {
+                        //[mirai:file:/b53231e8-46dd-11ec-8ba5-5452007bd6c0,102,run.bat,55]
+                        size_t comma1 = tmp.find(',');
+                        size_t comma2 = tmp.find(',', comma1 + 1);
+                        size_t comma3 = tmp.find(',', comma2 + 1);
+                        mc.add(RemoteFile(tmp.substr(i + 1, comma1 - i - 1), std::stoi(tmp.substr(comma1 + 1, comma2 - comma1 - 1)), tmp.substr(comma2 + 1, comma3 - comma2 - 1), std::stoll(tmp.substr(comma3 + 1, tmp.length() - comma3 - 1))));
+                        break;
+                    }
+                    case 7:
+                        mc.add(Face(std::stoi(tmp.substr(i + 1, tmp.length() - i - 1))));
+                        break;
+                    case 8:
+                        mc.add(FlashImage(tmp.substr(i + 1, tmp.length() - i - 1)));
+                        break;
+                    case 9: {
+                        //[mirai:musicshare:name,title,summary,jUrl,pUrl,mUrl,brief]
+                        auto temp = Tools::split(tmp.substr(i + 1, tmp.length() - i - 1), ",");
+                        mc.add(MusicShare(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6]));
+                        break;
+                    }
+                    default:
+                        Logger::logger.error(
+                                "MiraiCP碰到了意料之中的错误(原因:部分SimpleMessage在MiraiCode解析支持之外)\n请到MiraiCP(github.com/Nambers/MiraiCP)发送issue并复制本段信息使MiraiCP可以支持这种消息: MiraiCode:" +
+                                m);
+                        mc.add(UnSupportMessage("[mirai:" + tmp));
+                        break;
                 }
                 pos = back;
                 lastPos = pos;
@@ -900,7 +893,7 @@ namespace MiraiCP {
             mc.add(PlainText(m.substr(lastPos + 1, m.length() - lastPos - 1))); // plain text
         return mc;
     }
-    MessageChain MessageChain::deserializationFromMessageSourceJson(const json& tmp, bool origin) {
+    MessageChain MessageChain::deserializationFromMessageSourceJson(const json &tmp, bool origin) {
         json j = tmp;
         if (origin)
             j = tmp["originalMessage"];
@@ -914,7 +907,7 @@ namespace MiraiCP {
             mc.add(OnlineForwardedMessage::deserializationFromMessageSourceJson(j));
             return mc;
         }
-        for (auto node : j) {
+        for (auto node: j) {
             if (node["type"] == "SimpleServiceMessage") {
                 mc.add(ServiceMessage(node["serviceId"], node["content"]));
                 continue;
@@ -925,7 +918,7 @@ namespace MiraiCP {
             }
             if (node["type"] == "OnlineAudio") {
                 mc.add(OnlineAudio(node["filename"], node["fileMd5"], node["fileSize"], node["codec"], node["length"],
-                    node["urlForDownload"]));
+                                   node["urlForDownload"]));
                 continue;
             }
             if (node["type"] == "FileMessage") {
@@ -937,32 +930,32 @@ namespace MiraiCP {
                 break;
             }
             switch (SingleMessage::getKey(node["type"])) {
-            case -2:
-                mc.add(QuoteReply(MessageSource::deserializeFromString(node["source"].dump())));
-                break;
-            case 0:
-                mc.add(PlainText(node["content"].get<std::string>()));
-                break;
-            case 1:
-                mc.add(At(node["target"]));
-                break;
-            case 2:
-                mc.add(AtAll());
-                break;
-            case 3:
-                mc.add(Image(node["imageId"]));
-                break;
-            case 7:
-                mc.add(Face(node["id"]));
-                break;
-            case 8:
-                mc.add(FlashImage(node["imageId"]));
-                break;
-            default:
-                Logger::logger.warning(
-                    "MiraiCP碰到了意料之中的错误(原因:接受到的SimpleMessage在MessageSource解析支持之外)\n请到MiraiCP(github.com/Nambers/MiraiCP)发送issue并复制本段信息使MiraiCP可以支持这种消息: MessageSource:" +
-                    j.dump());
-                mc.add(UnSupportMessage(node.dump()));
+                case -2:
+                    mc.add(QuoteReply(MessageSource::deserializeFromString(node["source"].dump())));
+                    break;
+                case 0:
+                    mc.add(PlainText(node["content"].get<std::string>()));
+                    break;
+                case 1:
+                    mc.add(At(node["target"]));
+                    break;
+                case 2:
+                    mc.add(AtAll());
+                    break;
+                case 3:
+                    mc.add(Image(node["imageId"]));
+                    break;
+                case 7:
+                    mc.add(Face(node["id"]));
+                    break;
+                case 8:
+                    mc.add(FlashImage(node["imageId"]));
+                    break;
+                default:
+                    Logger::logger.warning(
+                            "MiraiCP碰到了意料之中的错误(原因:接受到的SimpleMessage在MessageSource解析支持之外)\n请到MiraiCP(github.com/Nambers/MiraiCP)发送issue并复制本段信息使MiraiCP可以支持这种消息: MessageSource:" +
+                            j.dump());
+                    mc.add(UnSupportMessage(node.dump()));
             }
         }
         return mc;
@@ -979,20 +972,19 @@ namespace MiraiCP {
         if (re == "E2") throw RecallException(MIRAICP_EXCEPTION_WHERE);
     }
     MessageSource::MessageSource(std::string ids,
-        std::string internalids,
-        std::string source)
+                                 std::string internalids,
+                                 std::string source)
         : ids(std::move(ids)),
-        internalids(std::move(internalids)),
-        source(std::move(source)) {}
+          internalids(std::move(internalids)),
+          source(std::move(source)) {}
     std::string MessageSource::serializeToString() const {
         return source;
     }
-    MessageSource MessageSource::deserializeFromString(const std::string& source) {
+    MessageSource MessageSource::deserializeFromString(const std::string &source) {
         json j = json::parse(source);
         try {
-            return { j["ids"].dump(), j["internalIds"].dump(), source };
-        }
-        catch (json::type_error& e) {
+            return {j["ids"].dump(), j["internalIds"].dump(), source};
+        } catch (json::type_error &e) {
             Logger::logger.error("消息源序列化出错，格式不符合(MessageSource::deserializeFromString)");
             Logger::logger.error(source);
             Logger::logger.error(e.what());
@@ -1005,7 +997,7 @@ namespace MiraiCP {
     std::string MiraiCode::toString() {
         return Tools::escapeFromMiraiCode(this->content);
     }
-    MiraiCode::MiraiCode(const std::string& a, bool convert) { // NOLINT(google-explicit-constructor)
+    MiraiCode::MiraiCode(const std::string &a, bool convert) { // NOLINT(google-explicit-constructor)
         if (!convert)
             content = a;
         else
@@ -1032,8 +1024,8 @@ namespace MiraiCP {
             {6, "file"},
             {7, "face"},
             {8, "FlashImage"},
-            {9, "MusicShare"} };
-    QuoteReply::QuoteReply(const SingleMessage& m) : SingleMessage(m) {
+            {9, "MusicShare"}};
+    QuoteReply::QuoteReply(const SingleMessage &m) : SingleMessage(m) {
         if (m.type != -2) throw IllegalArgumentException("cannot convert type(" + std::to_string(m.type) + "to QuoteReply", MIRAICP_EXCEPTION_WHERE);
         source = MessageSource::deserializeFromString(m.content);
     }
@@ -1044,8 +1036,8 @@ namespace MiraiCP {
         j["content"] = content;
         return j;
     }
-    int SingleMessage::getKey(const std::string& value) {
-        for (const auto& a : messageType) {
+    int SingleMessage::getKey(const std::string &value) {
+        for (const auto &a: messageType) {
             if (Tools::iequal(a.second, value)) return a.first;
         }
         return -1;
@@ -1062,10 +1054,10 @@ namespace MiraiCP {
         else
             return content;
     }
-    PlainText::PlainText(const SingleMessage& sg) : SingleMessage(sg) {
+    PlainText::PlainText(const SingleMessage &sg) : SingleMessage(sg) {
         if (sg.type != 0)
             throw IllegalArgumentException(
-                "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to PlainText", MIRAICP_EXCEPTION_WHERE);
+                    "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to PlainText", MIRAICP_EXCEPTION_WHERE);
         this->content = sg.content;
     }
     nlohmann::json At::toJson() const {
@@ -1074,10 +1066,10 @@ namespace MiraiCP {
         j["content"] = std::to_string(this->target);
         return j;
     }
-    At::At(const SingleMessage& sg) : SingleMessage(sg) {
+    At::At(const SingleMessage &sg) : SingleMessage(sg) {
         if (sg.type != 1)
             throw IllegalArgumentException(
-                "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to At", MIRAICP_EXCEPTION_WHERE);
+                    "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to At", MIRAICP_EXCEPTION_WHERE);
         this->target = std::stol(sg.content);
     }
     nlohmann::json AtAll::toJson() const {
@@ -1095,7 +1087,7 @@ namespace MiraiCP {
         j["type"] = this->imageType;
         return j;
     }
-    Image::Image(const SingleMessage& sg) : SingleMessage(sg) {
+    Image::Image(const SingleMessage &sg) : SingleMessage(sg) {
         if (sg.type != 3 && sg.type != 8) throw IllegalArgumentException("传入的SingleMessage应该是Image类型", MIRAICP_EXCEPTION_WHERE);
         this->id = sg.content;
         this->size = this->width = this->height = 0;
@@ -1125,10 +1117,10 @@ namespace MiraiCP {
         j["content"] = this->content;
         return j;
     }
-    LightApp::LightApp(const SingleMessage& sg) : SingleMessage(sg) {
+    LightApp::LightApp(const SingleMessage &sg) : SingleMessage(sg) {
         if (sg.type != 3)
             throw IllegalArgumentException(
-                "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to LighApp", MIRAICP_EXCEPTION_WHERE);
+                    "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to LighApp", MIRAICP_EXCEPTION_WHERE);
     }
     std::string LightApp::toMiraiCode() const {
         return "[mirai:app:" + Tools::escapeToMiraiCode(content) + "]";
@@ -1143,10 +1135,10 @@ namespace MiraiCP {
     std::string ServiceMessage::toMiraiCode() const {
         return "[mirai:service" + this->prefix + Tools::escapeToMiraiCode(content) + "]";
     }
-    ServiceMessage::ServiceMessage(const SingleMessage& sg) : SingleMessage(sg) {
+    ServiceMessage::ServiceMessage(const SingleMessage &sg) : SingleMessage(sg) {
         if (sg.type != 4)
             throw IllegalArgumentException(
-                "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to ServiceMessage", MIRAICP_EXCEPTION_WHERE);
+                    "Cannot convert(" + MiraiCP::SingleMessage::messageType[sg.type] + ") to ServiceMessage", MIRAICP_EXCEPTION_WHERE);
     }
     nlohmann::json Face::toJson() const {
         nlohmann::json j;
@@ -1161,32 +1153,31 @@ namespace MiraiCP {
         return j;
     }
     //远程文件(群文件)
-    RemoteFile::RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s, std::string p,
-        struct Dinfo d, struct Finfo f) : SingleMessage(RemoteFile::type(), i + "," + std::to_string(ii) + "," +
-            Tools::escapeToMiraiCode(std::move(n)) +
-            "," +
-            std::to_string(s)),
-        id(i),
-        internalid(ii),
-        name(std::move(n)),
-        size(s),
-        path(std::move(p)),
-        dinfo(std::move(d)),
-        finfo(f) {}
-    RemoteFile::RemoteFile(const std::string& i, unsigned int ii, std::string n, long long s) : SingleMessage(6, i + "," + std::to_string(ii) + "," +
-        Tools::escapeToMiraiCode(std::move(n)) +
-        "," +
-        std::to_string(s)),
-        id(i),
-        internalid(ii),
-        name(std::move(n)),
-        size(s) {}
-    RemoteFile RemoteFile::deserializeFromString(const std::string& source) {
+    RemoteFile::RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s, std::string p,
+                           struct Dinfo d, struct Finfo f) : SingleMessage(RemoteFile::type(), i + "," + std::to_string(ii) + "," +
+                                                                                                       Tools::escapeToMiraiCode(std::move(n)) +
+                                                                                                       "," +
+                                                                                                       std::to_string(s)),
+                                                             id(i),
+                                                             internalid(ii),
+                                                             name(std::move(n)),
+                                                             size(s),
+                                                             path(std::move(p)),
+                                                             dinfo(std::move(d)),
+                                                             finfo(f) {}
+    RemoteFile::RemoteFile(const std::string &i, unsigned int ii, std::string n, long long s) : SingleMessage(6, i + "," + std::to_string(ii) + "," +
+                                                                                                                         Tools::escapeToMiraiCode(std::move(n)) +
+                                                                                                                         "," +
+                                                                                                                         std::to_string(s)),
+                                                                                                id(i),
+                                                                                                internalid(ii),
+                                                                                                name(std::move(n)),
+                                                                                                size(s) {}
+    RemoteFile RemoteFile::deserializeFromString(const std::string &source) {
         json j;
         try {
             j = json::parse(source);
-        }
-        catch (json::parse_error& e) {
+        } catch (json::parse_error &e) {
             Logger::logger.error("格式化json失败，RemoteFile::deserializeFromString");
             Logger::logger.error(source);
             Logger::logger.error(e.what());
@@ -1197,26 +1188,25 @@ namespace MiraiCP {
             if (j.contains("dinfo")) {
                 struct Dinfo d {
                     j["dinfo"]["url"],
-                        j["dinfo"]["md5"],
-                        j["dinfo"]["sha1"]
+                            j["dinfo"]["md5"],
+                            j["dinfo"]["sha1"]
                 };
                 re.dinfo = d;
             }
             if (j["finfo"].contains("uploaderid")) {
                 struct Finfo f {
                     j["finfo"]["size"],
-                        j["finfo"]["uploaderid"],
-                        j["finfo"]["expirytime"],
-                        j["finfo"]["uploadtime"],
-                        j["finfo"]["lastmodifytime"]
+                            j["finfo"]["uploaderid"],
+                            j["finfo"]["expirytime"],
+                            j["finfo"]["uploadtime"],
+                            j["finfo"]["lastmodifytime"]
                 };
                 re.finfo = f;
             }
             if (j.contains("path"))
                 re.path = j["path"];
             return re;
-        }
-        catch (json::type_error& e) {
+        } catch (json::type_error &e) {
             Logger::logger.error("json格式化失败，位置:RemoteFile");
             Logger::logger.error(source);
             Logger::logger.error(e.what());
@@ -1227,7 +1217,7 @@ namespace MiraiCP {
         RemoteFile tmp(*this);
         tmp.internalid = ii;
         tmp.content = id + "," + std::to_string(ii) + "," + Tools::escapeToMiraiCode(std::move(name)) + "," +
-            std::to_string(size);
+                      std::to_string(size);
         return tmp;
     }
     std::string RemoteFile::serializeToString() {
@@ -1265,23 +1255,23 @@ namespace MiraiCP {
         this->height = j["height"];
         this->imageType = j["type"];
     }
-    Image Image::deserialize(const std::string& str) {
+    Image Image::deserialize(const std::string &str) {
         json j = json::parse(str);
         return Image(
-            j["imageid"],
-            j["size"],
-            j["width"],
-            j["height"],
-            j["type"]);
+                j["imageid"],
+                j["size"],
+                j["width"],
+                j["height"],
+                j["type"]);
     }
-    FlashImage FlashImage::deserialize(const std::string& str) {
+    FlashImage FlashImage::deserialize(const std::string &str) {
         json j = json::parse(str);
         return FlashImage(
-            j["imageid"],
-            j["size"],
-            j["width"],
-            j["height"],
-            j["type"]);
+                j["imageid"],
+                j["size"],
+                j["width"],
+                j["height"],
+                j["type"]);
     }
 } // namespace MiraiCP
 //from include/Tools.cpp
@@ -1303,50 +1293,50 @@ namespace MiraiCP::Tools {
         temp.pop_back();
         std::regex ws_re("[,]+");
         std::vector<std::string> v(std::sregex_token_iterator(temp.begin(), temp.end(), ws_re, -1),
-            std::sregex_token_iterator());
+                                   std::sregex_token_iterator());
         result.reserve(v.size());
-        std::for_each(v.begin(), v.end(), [&](auto&& s) { result.emplace_back(std::stoull(s)); });
+        std::for_each(v.begin(), v.end(), [&](auto &&s) { result.emplace_back(std::stoull(s)); });
         // for (auto &&s: v)
         //     result.emplace_back(std::stoull(s));
         return result;
     }
-    std::string escapeFromMiraiCode(const std::string& s) {
-        //[	\[
-        //]	\]
-        //:	\:
-        //,	\,
-        //\	\\ /
+    std::string escapeFromMiraiCode(const std::string &s) {
+        //[ \[
+        //] \]
+        //: \:
+        //, \,
+        //\ \\ /
         return replace(replace(replace(replace(replace(s,
-            "\\\\", "\\"),
-            "\\,", ","),
-            "\\:", ":"),
-            "\\]", "]"),
-            "\\[", "[");
+                                                       "\\\\", "\\"),
+                                               "\\,", ","),
+                                       "\\:", ":"),
+                               "\\]", "]"),
+                       "\\[", "[");
     }
-    std::string escapeToMiraiCode(const std::string& s) {
-        //[	\[
-        //]	\]
-        //:	\:
-        //,	\,
-        //\	\\ /
+    std::string escapeToMiraiCode(const std::string &s) {
+        //[ \[
+        //] \]
+        //: \:
+        //, \,
+        //\ \\ /
         return replace(replace(replace(replace(replace(s,
-            "\\", "\\\\"),
-            ",", "\\,"),
-            ":", "\\:"),
-            "]", "\\]"),
-            "[", "\\[");
+                                                       "\\", "\\\\"),
+                                               ",", "\\,"),
+                                       ":", "\\:"),
+                               "]", "\\]"),
+                       "[", "\\[");
     }
     bool starts_with(std::string_view f, std::string_view s) { return f.rfind(s, 0) == 0; }
-    bool icompareChar(const char& c1, const char& c2) {
+    bool icompareChar(const char &c1, const char &c2) {
         return c1 == c2 || std::toupper(c1) == std::toupper(c2);
     }
     bool iequal(std::string_view str1, std::string_view str2) {
         return ((str1.size() == str2.size()) &&
-            std::equal(str1.begin(), str1.end(), str2.begin(), &icompareChar));
+                std::equal(str1.begin(), str1.end(), str2.begin(), &icompareChar));
     }
-    std::vector<std::string> split(const std::string& text, const std::string& delim) {
+    std::vector<std::string> split(const std::string &text, const std::string &delim) {
         std::regex ws_re(delim + "+");
-        return { std::sregex_token_iterator(text.begin(), text.end(), ws_re, -1), std::sregex_token_iterator() };
+        return {std::sregex_token_iterator(text.begin(), text.end(), ws_re, -1), std::sregex_token_iterator()};
     }
 } // namespace MiraiCP::Tools
 //from include/loaderApi.cpp
@@ -1354,68 +1344,67 @@ namespace MiraiCP::Tools {
 #include <utility>
 #include <vector>
 namespace LibLoader::LoaderApi {
-    static const interface_funcs* loader_apis = nullptr;
-    void set_loader_apis(const LibLoader::LoaderApi::interface_funcs* apis) {
+    static const interface_funcs *loader_apis = nullptr;
+    void set_loader_apis(const LibLoader::LoaderApi::interface_funcs *apis) {
         loader_apis = apis;
     }
     void reset_loader_apis() {
         loader_apis = nullptr;
     }
     /// 这个函数是给本cpp以外的文件使用的，大概率用不到
-    const interface_funcs* get_loader_apis() {
+    const interface_funcs *get_loader_apis() {
         return loader_apis;
     }
     using MiraiCP::PluginNotAuthorizedException;
     using MiraiCP::PluginNotEnabledException;
     // check the func ptr existance before use it
-    inline void checkApi(void* funcptr) {
+    inline void checkApi(void *funcptr) {
         if (loader_apis == nullptr) [[unlikely]] {
             throw PluginNotEnabledException(MIRAICP_EXCEPTION_WHERE);
-        }
-        else if (funcptr == nullptr) [[unlikely]] {
-         throw PluginNotAuthorizedException(MIRAICP_EXCEPTION_WHERE);
+        } else if (funcptr == nullptr) [[unlikely]] {
+            throw PluginNotAuthorizedException(MIRAICP_EXCEPTION_WHERE);
         }
     }
     /// interfaces for plugins
-    MiraiCPString pluginOperation(const MiraiCPString& s) {
-        checkApi((void*)loader_apis->_pluginOperation);
+    MiraiCPString pluginOperation(const MiraiCPString &s) {
+        checkApi((void *) loader_apis->_pluginOperation);
         return loader_apis->_pluginOperation(s);
     }
-    void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level) {
-        checkApi((void*)loader_apis->_loggerInterface);
+    void loggerInterface(const MiraiCPString &content, const MiraiCPString &name, long long id, int level) {
+        checkApi((void *) loader_apis->_loggerInterface);
         loader_apis->_loggerInterface(content, name, id, level);
     }
     // todo(ea): 返回可用类型而不是中间类型
     MiraiCPString showAllPluginId() {
-        checkApi((void*)loader_apis->_showAllPluginId);
+        checkApi((void *) loader_apis->_showAllPluginId);
         return loader_apis->_showAllPluginId();
     }
-    void enablePluginById(const MiraiCPString& id) {
-        checkApi((void*)loader_apis->_enablePluginById);
+    void enablePluginById(const MiraiCPString &id) {
+        checkApi((void *) loader_apis->_enablePluginById);
         loader_apis->_enablePluginById(id);
     }
-    void disablePluginById(const MiraiCPString& id) {
-        checkApi((void*)loader_apis->_disablePluginById);
+    void disablePluginById(const MiraiCPString &id) {
+        checkApi((void *) loader_apis->_disablePluginById);
         loader_apis->_disablePluginById(id);
     }
     void enableAllPlugins() {
-        checkApi((void*)loader_apis->_enableAllPlugins);
+        checkApi((void *) loader_apis->_enableAllPlugins);
         loader_apis->_enableAllPlugins();
     }
     void disableAllPlugins() {
-        checkApi((void*)loader_apis->_disableAllPlugins);
+        checkApi((void *) loader_apis->_disableAllPlugins);
         loader_apis->_disableAllPlugins();
     }
-    void loadNewPlugin(const MiraiCPString& path, bool activateNow) {
-        checkApi((void*)loader_apis->_loadNewPlugin);
+    void loadNewPlugin(const MiraiCPString &path, bool activateNow) {
+        checkApi((void *) loader_apis->_loadNewPlugin);
         loader_apis->_loadNewPlugin(path, activateNow);
     }
-    void unloadPluginById(const MiraiCPString& id) {
-        checkApi((void*)loader_apis->_unloadPluginById);
+    void unloadPluginById(const MiraiCPString &id) {
+        checkApi((void *) loader_apis->_unloadPluginById);
         loader_apis->_unloadPluginById(id);
     }
-    void reloadPluginById(const MiraiCPString& id) {
-        checkApi((void*)loader_apis->_reloadPluginById);
+    void reloadPluginById(const MiraiCPString &id) {
+        checkApi((void *) loader_apis->_reloadPluginById);
         loader_apis->_reloadPluginById(id);
     }
 } // namespace LibLoader::LoaderApi
@@ -1423,99 +1412,92 @@ namespace LibLoader::LoaderApi {
 // 开始对接libloader接口代码
 using json = nlohmann::json;
 namespace LibLoader::LoaderApi {
-    const interface_funcs* get_loader_apis();
-    void set_loader_apis(const LibLoader::LoaderApi::interface_funcs* apis);
+    const interface_funcs *get_loader_apis();
+    void set_loader_apis(const LibLoader::LoaderApi::interface_funcs *apis);
     void reset_loader_apis();
 } // namespace LibLoader::LoaderApi
 extern "C" {
-    /// 插件开启入口
-    MIRAICP_EXPORT void FUNC_ENTRANCE(const LibLoader::LoaderApi::interface_funcs& funcs) {
-        static_assert(std::is_same_v<decltype(&FUNC_ENTRANCE), LibLoader::plugin_entrance_func_ptr>);
-        using namespace MiraiCP;
-        Event::clear();
-        LibLoader::LoaderApi::set_loader_apis(&funcs);
-        assert(LibLoader::LoaderApi::get_loader_apis() != nullptr);
-        Logger::logger.info("开始启动插件: " + MiraiCP::CPPPlugin::config.getId());
-        try {
-            enrollPlugin();
-            // plugin == nullptr 无插件实例加载
-            if (CPPPlugin::plugin != nullptr) {
-                CPPPlugin::plugin->onEnable();
-            }
+/// 插件开启入口
+MIRAICP_EXPORT void FUNC_ENTRANCE(const LibLoader::LoaderApi::interface_funcs &funcs) {
+    static_assert(std::is_same_v<decltype(&FUNC_ENTRANCE), LibLoader::plugin_entrance_func_ptr>);
+    using namespace MiraiCP;
+    Event::clear();
+    LibLoader::LoaderApi::set_loader_apis(&funcs);
+    assert(LibLoader::LoaderApi::get_loader_apis() != nullptr);
+    Logger::logger.info("开始启动插件: " + MiraiCP::CPPPlugin::config.getId());
+    try {
+        enrollPlugin();
+        // plugin == nullptr 无插件实例加载
+        if (CPPPlugin::plugin != nullptr) {
+            CPPPlugin::plugin->onEnable();
         }
-        catch (const MiraiCPExceptionBase& e) {
-            e.raise();
-            Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
-            throw IllegalStateException(e.what(), e.filename, e.lineNum);
-        }
-        catch (const std::exception& e) {
-            Logger::logger.error(e.what());
-            Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
-            throw IllegalStateException(e.what(), MIRAICP_EXCEPTION_WHERE);
-        }
-        catch (...) {
-            Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
-            throw IllegalStateException("", MIRAICP_EXCEPTION_WHERE);
-        }
+    } catch (const MiraiCPExceptionBase &e) {
+        e.raise();
+        Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
+        throw IllegalStateException(e.what(), e.filename, e.lineNum);
+    } catch (const std::exception &e) {
+        Logger::logger.error(e.what());
+        Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
+        throw IllegalStateException(e.what(), MIRAICP_EXCEPTION_WHERE);
+    } catch (...) {
+        Logger::logger.error("插件(id=" + CPPPlugin::config.getId() + ", name=" + CPPPlugin::config.name + ")启动失败");
+        throw IllegalStateException("", MIRAICP_EXCEPTION_WHERE);
     }
-    /// 插件结束(也可能是暂时的disable)
-    MIRAICP_EXPORT void FUNC_EXIT() {
-        static_assert(std::is_same_v<decltype(&FUNC_EXIT), LibLoader::plugin_func_ptr>);
-        using namespace MiraiCP;
-        Logger::logger.info("开始禁用插件：" + MiraiCP::CPPPlugin::config.getId());
-        Event::clear();
-        if (CPPPlugin::plugin != nullptr) CPPPlugin::plugin->onDisable();
-        CPPPlugin::plugin.reset();
-        // 无法保证用户插件析构函数是否调用api，在plugin.reset()之前不可reset loader api
-        LibLoader::LoaderApi::reset_loader_apis();
+}
+/// 插件结束(也可能是暂时的disable)
+MIRAICP_EXPORT void FUNC_EXIT() {
+    static_assert(std::is_same_v<decltype(&FUNC_EXIT), LibLoader::plugin_func_ptr>);
+    using namespace MiraiCP;
+    Logger::logger.info("开始禁用插件：" + MiraiCP::CPPPlugin::config.getId());
+    Event::clear();
+    if (CPPPlugin::plugin != nullptr) CPPPlugin::plugin->onDisable();
+    CPPPlugin::plugin.reset();
+    // 无法保证用户插件析构函数是否调用api，在plugin.reset()之前不可reset loader api
+    LibLoader::LoaderApi::reset_loader_apis();
+}
+/// 消息解析分流
+/// env != null, call from jni
+MIRAICP_EXPORT void FUNC_EVENT(const char *c) {
+    static_assert(std::is_same_v<decltype(&FUNC_EVENT), LibLoader::plugin_event_func_ptr>);
+    using namespace MiraiCP;
+    std::string content = c;
+    json j;
+    try {
+        j = json::parse(content);
+    } catch (json::parse_error &e) {
+        Logger::logger.error("消息解析分流：格式化json错误");
+        Logger::logger.error("For debug: " + content);
+        Logger::logger.error(e.what());
+        return;
     }
-    /// 消息解析分流
-    /// env != null, call from jni
-    MIRAICP_EXPORT void FUNC_EVENT(const char* c) {
-        static_assert(std::is_same_v<decltype(&FUNC_EVENT), LibLoader::plugin_event_func_ptr>);
-        using namespace MiraiCP;
-        std::string content = c;
-        json j;
-        try {
-            j = json::parse(content);
-        }
-        catch (json::parse_error& e) {
-            Logger::logger.error("消息解析分流：格式化json错误");
-            Logger::logger.error("For debug: " + content);
-            Logger::logger.error(e.what());
-            return;
-        }
-        int type = j["type"].get<int>();
-        if (type != eventTypes::Command && Event::noRegistered(type)) return;
-        try {
-            Event::incomingEvent(std::move(j), type);
-        }
-        catch (json::type_error& e) {
-            Logger::logger.error("json格式化异常,位置C-Handle");
-            Logger::logger.error(e.what());
-            Logger::logger.error("info:", content);
-        }
-        catch (MiraiCPExceptionBase& e) {
-            Event::broadcast<MiraiCPExceptionEvent>(MiraiCPExceptionEvent(&e));
-            e.raise();
-        }
-        catch (const std::exception& e) {
-            Logger::logger.error(e.what());
-            Logger::logger.error("info:", content);
-        }
-        // 如果产生了无法处理的异常，直接退出插件
-        // loader端将处理这个异常并将绑定的线程结束掉
-        // 如果存在其他线程，可能导致段错误
+    int type = j["type"].get<int>();
+    if (type != eventTypes::Command && Event::noRegistered(type)) return;
+    try {
+        Event::incomingEvent(std::move(j), type);
+    } catch (json::type_error &e) {
+        Logger::logger.error("json格式化异常,位置C-Handle");
+        Logger::logger.error(e.what());
+        Logger::logger.error("info:", content);
+    } catch (MiraiCPExceptionBase &e) {
+        Event::broadcast<MiraiCPExceptionEvent>(MiraiCPExceptionEvent(&e));
+        e.raise();
+    } catch (const std::exception &e) {
+        Logger::logger.error(e.what());
+        Logger::logger.error("info:", content);
     }
-    /// 获取 Plugin Info
-    /// 如果未正确定义，插件无法正确加载
-    /// 该函数不可调用loader api；因为会在入口函数调用前先调用，loader api未初始化
-    MIRAICP_EXPORT const MiraiCP::PluginConfig& PLUGIN_INFO() {
-        static_assert(std::is_same_v<decltype(&PLUGIN_INFO), LibLoader::plugin_info_func_ptr>);
-        if (MiraiCP::CPPPlugin::config.getId().empty())
-            throw std::exception();
-        return MiraiCP::CPPPlugin::config;
-    }
+    // 如果产生了无法处理的异常，直接退出插件
+    // loader端将处理这个异常并将绑定的线程结束掉
+    // 如果存在其他线程，可能导致段错误
+}
+/// 获取 Plugin Info
+/// 如果未正确定义，插件无法正确加载
+/// 该函数不可调用loader api；因为会在入口函数调用前先调用，loader api未初始化
+MIRAICP_EXPORT const MiraiCP::PluginConfig &PLUGIN_INFO() {
+    static_assert(std::is_same_v<decltype(&PLUGIN_INFO), LibLoader::plugin_info_func_ptr>);
+    if (MiraiCP::CPPPlugin::config.getId().empty())
+        throw std::exception();
+    return MiraiCP::CPPPlugin::config;
+}
 }
 //结束对接JNI接口代码
 //from common/PluginConfig.cpp
@@ -1555,14 +1537,14 @@ namespace MiraiCP {
 #endif
 #include <cstring>
 namespace MiraiCP {
-    void swap(MiraiCPString& a, MiraiCPString& b) noexcept {
+    void swap(MiraiCPString &a, MiraiCPString &b) noexcept {
         std::swap(a.str, b.str);
         std::swap(a._size, b._size);
         std::swap(a.free_this, b.free_this);
     }
     // avoid calling this if _size == 0
     void MiraiCPString::construction() {
-        str = (char*) ::std::malloc(sizeof(char) * (_size + 1));
+        str = (char *) ::std::malloc(sizeof(char) * (_size + 1));
         if (str == nullptr) {
 #ifdef MIRAICP_LIB_LOADER
             LibLoader::logger.error("MiraiCPString::construction: malloc failed when trying to malloc size " + std::to_string(_size + 1));
@@ -1577,17 +1559,17 @@ namespace MiraiCP {
             str = nullptr;
         }
     }
-    MiraiCPString::MiraiCPString(const MiraiCPString& other) : str(nullptr), _size(other._size), free_this(std_free_ptr) {
+    MiraiCPString::MiraiCPString(const MiraiCPString &other) : str(nullptr), _size(other._size), free_this(std_free_ptr) {
         if (_size == 0) return;
         construction();
         assert(str != nullptr);
         memcpy(str, other.str, _size * sizeof(char));
         str[_size] = 0;
     }
-    MiraiCPString::MiraiCPString(MiraiCPString&& temp) noexcept : MiraiCPString() {
+    MiraiCPString::MiraiCPString(MiraiCPString &&temp) noexcept : MiraiCPString() {
         swap(*this, temp);
     }
-    MiraiCPString::MiraiCPString(const char* char_str) : MiraiCPString() {
+    MiraiCPString::MiraiCPString(const char *char_str) : MiraiCPString() {
         if (char_str == nullptr) return;
         _size = strlen(char_str);
         if (0 == _size) return;
@@ -1596,7 +1578,7 @@ namespace MiraiCP {
         memcpy(str, char_str, _size * sizeof(char));
         str[_size] = 0;
     }
-    MiraiCPString::MiraiCPString(const std::string& string_str) {
+    MiraiCPString::MiraiCPString(const std::string &string_str) {
         _size = string_str.size();
         if (!_size) return;
         construction();
@@ -1604,21 +1586,21 @@ namespace MiraiCP {
         memcpy(str, string_str.c_str(), _size * sizeof(char));
         str[_size] = 0;
     }
-    const char* MiraiCPString::copyToCharPtr() const {
-        if (str == nullptr || _size == 0) return new char[1]{ 0 };
-        char* t = new char[_size + 1];
+    const char *MiraiCPString::copyToCharPtr() const {
+        if (str == nullptr || _size == 0) return new char[1]{0};
+        char *t = new char[_size + 1];
         memcpy(t, str, (_size + 1) * sizeof(char));
         return t;
     }
-    bool MiraiCPString::operator==(const MiraiCPString& another) const {
+    bool MiraiCPString::operator==(const MiraiCPString &another) const {
         return another._size == _size && (_size == 0 || strcmp(another.str, str) == 0);
     }
-    MiraiCPString& MiraiCPString::operator=(const MiraiCPString& another) {
+    MiraiCPString &MiraiCPString::operator=(const MiraiCPString &another) {
         MiraiCPString temp(another);
         std::swap(*this, temp);
         return *this;
     }
-    MiraiCPString& MiraiCPString::operator=(MiraiCPString&& another) noexcept {
+    MiraiCPString &MiraiCPString::operator=(MiraiCPString &&another) noexcept {
         std::swap(*this, another);
         return *this;
     }
