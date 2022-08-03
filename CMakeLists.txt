@@ -75,4 +75,6 @@ list(REMOVE_DUPLICATES PROJECT_SOURCE_PATHS)
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_PATHS}")
 
+if (MSVC)
 target_compile_options(${PROJECT_NAME} PUBLIC /EHs /utf-8)
+endif()
