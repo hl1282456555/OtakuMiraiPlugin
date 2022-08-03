@@ -9,8 +9,13 @@
 #include <cpr/cpr.h>
 #endif
 
+#ifdef __linux__
+#define REGISTER_FFXIV_COMMAND_PROCESSOR(CommandType) \
+CommandProcessor[EFFXIVCommandType::CommandType] = std::bind(&FCommandProcessor_FFXIV::ProcessCommand_##CommandType, this, std::placeholders::_1, std::placeholders::_2);
+#else
 #define REGISTER_FFXIV_COMMAND_PROCESSOR(CommandType) \
 CommandProcessor[EFFXIVCommandType::##CommandType] = std::bind(&FCommandProcessor_FFXIV::ProcessCommand_##CommandType, this, std::placeholders::_1, std::placeholders::_2);
+#endif
 
 REGISTER_COMMAND_PROCESSOR(FFXIV);
 
