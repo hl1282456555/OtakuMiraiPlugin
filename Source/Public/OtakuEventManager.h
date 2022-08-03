@@ -10,6 +10,7 @@
 #include <mutex>
 #include <queue>
 #include <map>
+#include <atomic>
 
 class FOtakuEventManager
 {
