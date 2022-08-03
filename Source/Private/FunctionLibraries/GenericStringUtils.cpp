@@ -155,7 +155,7 @@ std::string UGenericStringUtils::ConvertTimestamp(long long Timestamp)
 	std::locale::global(std::locale("zh_CN.utf8"));
 	time_t CachedTimestamp = Timestamp * 1000;
 	char MbStr[128] = { 0 };
-	if (std::strftime(MbStr, sizeof(MbStr), "%A %c", std::localtime(&Timestamp)) == 0)
+	if (std::strftime(MbStr, sizeof(MbStr), "%A %c", std::localtime((const time_t*)&Timestamp)) == 0)
 	{
 		return "";
 	}
