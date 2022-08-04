@@ -15,25 +15,91 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2022. Eritque arcus and contributors.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or any later version(in your opinion).
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+#ifndef MIRAICP_PRO_MIRAICPSTRINGINTERNAL_H
+#define MIRAICP_PRO_MIRAICPSTRINGINTERNAL_H
+#include <cassert>
+#include <string>
+namespace MiraiCP {
+    // this class is used to ensure data consistency between dynamic libs
+    // note: do not use this directly;
+    // always convert to const char* or std::string before using.
+    class MiraiCPString {
+        using string = std::string;
+    private:
+        static constexpr decltype(&::std::free) std_free_ptr = &::std::free;
+    private:
+        // to keep integration and safe for empty construction/deconstruction, always initialize here
+        char *str = nullptr;
+        size_t _size = 0;
+        decltype(&::std::free) free_this = std_free_ptr; // specify which free() to use; ensure deconstruction is paired to construction
+    public:
+        bool isEmpty() const {
+            return _size == 0;
+        }
+        MiraiCPString() : str(nullptr), _size(0), free_this(std_free_ptr) {}
+        // call if _size is set to non-zero
+        // allocate memory for str
+        void construction();
+        ~MiraiCPString();
+        MiraiCPString(const MiraiCPString &other);
+        MiraiCPString(MiraiCPString &&temp) noexcept;
+        MiraiCPString(const char *char_str);
+        MiraiCPString(const std::string &string_str);
+        std::string toString() const {
+            if (str == nullptr || _size == 0) return {};
+            return {str};
+        }
+        operator std::string() const {
+            return toString();
+        }
+        // for safe destruction, DO NOT provide move convert to char*
+        // the return value of this method can always be deleted by delete[] and is never nullptr
+        const char *copyToCharPtr() const;
+        bool operator==(const MiraiCPString &another) const;
+        MiraiCPString &operator=(const MiraiCPString &another);
+        MiraiCPString &operator=(MiraiCPString &&another) noexcept;
+    private:
+        void swap(MiraiCPString &other) noexcept;
+    };
+    static_assert(sizeof(char) == 1, "Please make sure the size of char type is 1");
+    static_assert(sizeof(MiraiCPString) == 3 * 8, "Please make sure MiraiCP is compiled under 64-bit mode.");
+} // namespace MiraiCP
+#endif //MIRAICP_PRO_MIRAICPSTRINGINTERNAL_H
 #ifndef MIRAICP_PRO_PLUGINCONFIG_H
 #define MIRAICP_PRO_PLUGINCONFIG_H
+// #include "MiraiCPStringInternal.h"
 #include <json.hpp>
 namespace MiraiCP {
     const std::string MiraiCPVersion = "v2.12.0-RC2";
     struct PluginConfig {
         /// @brief 插件id, 要与别人不一样否则报错无法加载(建议用类包格式，如: io.github.nambers)
-        const char *id;
+        MiraiCPString id;
         /// @brief 插件名称
-        const char *name;
+        MiraiCPString name;
         /// @brief 插件版本
-        const char *version;
+        MiraiCPString version;
         /// @brief 插件作者(及联系方式)
-        const char *author;
+        MiraiCPString author;
         /// @brief [optional]插件描述
-        const char *description;
+        MiraiCPString description = "";
         /// @brief [optional]构建时间, 默认为__DATE__宏
-        const char *time = __DATE__;
-        const char *mversion = MiraiCPVersion.c_str();
+        MiraiCPString time = __DATE__;
+        MiraiCPString mversion = MiraiCPVersion.c_str();
         std::string getId() const {
             return {id};
         }
@@ -78,6 +144,7 @@ namespace MiraiCP {
 #ifndef MIRAICP_PRO_COMMONTOOLS_H
 #define MIRAICP_PRO_COMMONTOOLS_H
 #include <functional>
+#define MIRAICP_EXCEPTION_WHERE __FILE__, __LINE__
 #define MiraiCP_defer(code)                              \
     auto __defered_statement_wrapper__ = [&]() { code }; \
     CommonTools::MiraiCPDefer<void> __defered_object__(__defered_statement_wrapper__)
@@ -137,71 +204,7 @@ namespace CommonTools {
 //
 #ifndef MIRAICP_PRO_LOADERAPIINTERNAL_H
 #define MIRAICP_PRO_LOADERAPIINTERNAL_H
-// #include "miraicpString.h"
-// Copyright (c) 2022. Eritque arcus and contributors.
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or any later version(in your opinion).
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-#ifndef MIRAICP_PRO_MIRAICPSTRING_H
-#define MIRAICP_PRO_MIRAICPSTRING_H
-#include <cassert>
-#include <string>
-namespace MiraiCP {
-    // this class is used to ensure data consistency between dynamic libs
-    // note: do not use this directly;
-    // always convert to const char* or std::string before using.
-    class MiraiCPString {
-        using string = std::string;
-        friend void swap(MiraiCPString &, MiraiCPString &) noexcept;
-    private:
-        static constexpr decltype(&::std::free) std_free_ptr = &::std::free;
-    private:
-        // to keep integration and safe for empty construction/deconstruction, always initialize here
-        char *str = nullptr;
-        size_t _size = 0;
-        decltype(&::std::free) free_this = std_free_ptr; // specify which free() to use; ensure deconstruction is paired to construction
-    public:
-        bool isEmpty() const {
-            return _size == 0;
-        }
-        MiraiCPString() : str(nullptr), _size(0), free_this(std_free_ptr) {}
-        // call if _size is set to non-zero
-        // allocate memory for str
-        void construction();
-        ~MiraiCPString();
-        MiraiCPString(const MiraiCPString &other);
-        MiraiCPString(MiraiCPString &&temp) noexcept;
-        MiraiCPString(const char *char_str);
-        MiraiCPString(const std::string &string_str);
-        std::string toString() const {
-            if (str == nullptr || _size == 0) return {};
-            return {str};
-        }
-        operator std::string() const {
-            return toString();
-        }
-        // for safe destruction, DO NOT provide move convert to char*
-        // the return value of this method can always be deleted by delete[] and is never nullptr
-        const char *copyToCharPtr() const;
-        bool operator==(const MiraiCPString &another) const;
-        MiraiCPString &operator=(const MiraiCPString &another);
-        MiraiCPString &operator=(MiraiCPString &&another) noexcept;
-    };
-    static_assert(sizeof(char) == 1, "Please make sure the size of char type is 1");
-    static_assert(sizeof(MiraiCPString) == 3 * 8, "Please make sure MiraiCP is compiled under 64-bit mode.");
-} // namespace MiraiCP
-#endif //MIRAICP_PRO_MIRAICPSTRING_H
+// #include "MiraiCPStringInternal.h"
 #ifdef MIRAICP_LIB_LOADER
 constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 #define LOADERAPI_H_NOTHING(X)
@@ -215,30 +218,34 @@ constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 namespace LibLoader::LoaderApi {
     using MiraiCP::MiraiCPString;
     LOADER_API_COUNT
-    MiraiCPString pluginOperation(const MiraiCPString&);
+    MiraiCPString pluginOperation(const MiraiCPString &);
     LOADER_API_COUNT
-    void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
+    void loggerInterface(const MiraiCPString &content, const MiraiCPString &name, long long id, int level);
     LOADER_API_COUNT
     MiraiCPString showAllPluginId();
     LOADER_API_COUNT
-    void enablePluginById(const MiraiCPString&);
+    void enablePluginById(const MiraiCPString &);
     LOADER_API_COUNT
-    void disablePluginById(const MiraiCPString&);
+    void disablePluginById(const MiraiCPString &);
     LOADER_API_COUNT
     void enableAllPlugins();
     LOADER_API_COUNT
     void disableAllPlugins();
     LOADER_API_COUNT
-    void loadNewPlugin(const MiraiCPString&, bool);
+    void loadNewPlugin(const MiraiCPString &, bool);
     LOADER_API_COUNT
-    void unloadPluginById(const MiraiCPString&);
+    void unloadPluginById(const MiraiCPString &);
     LOADER_API_COUNT
-    void reloadPluginById(const MiraiCPString&);
+    void reloadPluginById(const MiraiCPString &);
+    // internal usage. do not call this directly in plugins.
     struct interface_funcs {
+        static constexpr int line0 = __LINE__;
         decltype(&pluginOperation) _pluginOperation;
         decltype(&loggerInterface) _loggerInterface;
         decltype(&showAllPluginId) _showAllPluginId;
+        static constexpr int line1 = __LINE__;
         // function below can only be called by admin plugins
+        static constexpr int adminline0 = __LINE__;
         decltype(&enablePluginById) _enablePluginById = nullptr;
         decltype(&disablePluginById) _disablePluginById = nullptr;
         decltype(&enableAllPlugins) _enableAllPlugins = nullptr;
@@ -246,6 +253,7 @@ namespace LibLoader::LoaderApi {
         decltype(&loadNewPlugin) _loadNewPlugin = nullptr;
         decltype(&unloadPluginById) _unloadPluginById = nullptr;
         decltype(&reloadPluginById) _reloadPluginById = nullptr;
+        static constexpr int adminline1 = __LINE__;
     };
 #ifdef MIRAICP_LIB_LOADER
     constexpr inline interface_funcs collect_interface_functions(bool admin) {
@@ -269,11 +277,14 @@ namespace LibLoader::LoaderApi {
             static_assert(line1 - line0 == counter + 3);
             return t;
         } else {
+            constexpr int line0 = __LINE__;
             interface_funcs t2 = {
                     pluginOperation,
                     loggerInterface,
                     showAllPluginId,
             }; // no admin functions
+            constexpr int line1 = __LINE__;
+            static_assert(line1 - line0 == interface_funcs::line1 - interface_funcs::line0 + 2);
             return t2;
         }
     }
@@ -289,7 +300,7 @@ namespace LibLoader {
     /// @see @macro FUNC_ENTRANCE
     typedef void (*plugin_entrance_func_ptr)(const LoaderApi::interface_funcs &);
     /// @see @macro FUNC_EVENT
-    typedef void (*plugin_event_func_ptr)(const char *);
+    typedef void (*plugin_event_func_ptr)(const MiraiCP::MiraiCPString &);
     /// @see @macro FUNC_EXIT
     typedef void (*plugin_func_ptr)();
     /// @see @macro PLUGIN_INFO
@@ -313,7 +324,7 @@ namespace LibLoader {
 //
 #ifndef MIRAICP_PRO_LOADERAPIINTERNAL_H
 #define MIRAICP_PRO_LOADERAPIINTERNAL_H
-// #include "miraicpString.h"
+// #include "MiraiCPStringInternal.h"
 #ifdef MIRAICP_LIB_LOADER
 constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 #define LOADERAPI_H_NOTHING(X)
@@ -327,30 +338,34 @@ constexpr int LOADERAPI_H_COUNTER_BASE = __COUNTER__ + 1;
 namespace LibLoader::LoaderApi {
     using MiraiCP::MiraiCPString;
     LOADER_API_COUNT
-    MiraiCPString pluginOperation(const MiraiCPString&);
+    MiraiCPString pluginOperation(const MiraiCPString &);
     LOADER_API_COUNT
-    void loggerInterface(const MiraiCPString& content, const MiraiCPString& name, long long id, int level);
+    void loggerInterface(const MiraiCPString &content, const MiraiCPString &name, long long id, int level);
     LOADER_API_COUNT
     MiraiCPString showAllPluginId();
     LOADER_API_COUNT
-    void enablePluginById(const MiraiCPString&);
+    void enablePluginById(const MiraiCPString &);
     LOADER_API_COUNT
-    void disablePluginById(const MiraiCPString&);
+    void disablePluginById(const MiraiCPString &);
     LOADER_API_COUNT
     void enableAllPlugins();
     LOADER_API_COUNT
     void disableAllPlugins();
     LOADER_API_COUNT
-    void loadNewPlugin(const MiraiCPString&, bool);
+    void loadNewPlugin(const MiraiCPString &, bool);
     LOADER_API_COUNT
-    void unloadPluginById(const MiraiCPString&);
+    void unloadPluginById(const MiraiCPString &);
     LOADER_API_COUNT
-    void reloadPluginById(const MiraiCPString&);
+    void reloadPluginById(const MiraiCPString &);
+    // internal usage. do not call this directly in plugins.
     struct interface_funcs {
+        static constexpr int line0 = __LINE__;
         decltype(&pluginOperation) _pluginOperation;
         decltype(&loggerInterface) _loggerInterface;
         decltype(&showAllPluginId) _showAllPluginId;
+        static constexpr int line1 = __LINE__;
         // function below can only be called by admin plugins
+        static constexpr int adminline0 = __LINE__;
         decltype(&enablePluginById) _enablePluginById = nullptr;
         decltype(&disablePluginById) _disablePluginById = nullptr;
         decltype(&enableAllPlugins) _enableAllPlugins = nullptr;
@@ -358,6 +373,7 @@ namespace LibLoader::LoaderApi {
         decltype(&loadNewPlugin) _loadNewPlugin = nullptr;
         decltype(&unloadPluginById) _unloadPluginById = nullptr;
         decltype(&reloadPluginById) _reloadPluginById = nullptr;
+        static constexpr int adminline1 = __LINE__;
     };
 #ifdef MIRAICP_LIB_LOADER
     constexpr inline interface_funcs collect_interface_functions(bool admin) {
@@ -381,11 +397,14 @@ namespace LibLoader::LoaderApi {
             static_assert(line1 - line0 == counter + 3);
             return t;
         } else {
+            constexpr int line0 = __LINE__;
             interface_funcs t2 = {
                     pluginOperation,
                     loggerInterface,
                     showAllPluginId,
             }; // no admin functions
+            constexpr int line1 = __LINE__;
+            static_assert(line1 - line0 == interface_funcs::line1 - interface_funcs::line0 + 2);
             return t2;
         }
     }
@@ -407,139 +426,13 @@ namespace LibLoader::LoaderApi {
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef MIRAICP_PRO_MIRAICPSTRING_H
-#define MIRAICP_PRO_MIRAICPSTRING_H
-#include <cassert>
-#include <string>
-namespace MiraiCP {
-    // this class is used to ensure data consistency between dynamic libs
-    // note: do not use this directly;
-    // always convert to const char* or std::string before using.
-    class MiraiCPString {
-        using string = std::string;
-        friend void swap(MiraiCPString &, MiraiCPString &) noexcept;
-    private:
-        static constexpr decltype(&::std::free) std_free_ptr = &::std::free;
-    private:
-        // to keep integration and safe for empty construction/deconstruction, always initialize here
-        char *str = nullptr;
-        size_t _size = 0;
-        decltype(&::std::free) free_this = std_free_ptr; // specify which free() to use; ensure deconstruction is paired to construction
-    public:
-        bool isEmpty() const {
-            return _size == 0;
-        }
-        MiraiCPString() : str(nullptr), _size(0), free_this(std_free_ptr) {}
-        // call if _size is set to non-zero
-        // allocate memory for str
-        void construction();
-        ~MiraiCPString();
-        MiraiCPString(const MiraiCPString &other);
-        MiraiCPString(MiraiCPString &&temp) noexcept;
-        MiraiCPString(const char *char_str);
-        MiraiCPString(const std::string &string_str);
-        std::string toString() const {
-            if (str == nullptr || _size == 0) return {};
-            return {str};
-        }
-        operator std::string() const {
-            return toString();
-        }
-        // for safe destruction, DO NOT provide move convert to char*
-        // the return value of this method can always be deleted by delete[] and is never nullptr
-        const char *copyToCharPtr() const;
-        bool operator==(const MiraiCPString &another) const;
-        MiraiCPString &operator=(const MiraiCPString &another);
-        MiraiCPString &operator=(MiraiCPString &&another) noexcept;
-    };
-    static_assert(sizeof(char) == 1, "Please make sure the size of char type is 1");
-    static_assert(sizeof(MiraiCPString) == 3 * 8, "Please make sure MiraiCP is compiled under 64-bit mode.");
-} // namespace MiraiCP
-#endif //MIRAICP_PRO_MIRAICPSTRING_H
-#ifndef MIRAICP_PRO_BOT_H
-#define MIRAICP_PRO_BOT_H
-#include <string>
-#include <vector>
-// #include "MiraiDefs.h"
-#ifndef MIRAICP_PRO_MIRAIDEFS_H
-#define MIRAICP_PRO_MIRAIDEFS_H
-// #define MiraiCPThrow(x) throw x.append(__FILE__, __LINE__)
-#define ErrorHandle(x, y) ErrorHandle0(__FILE__, __LINE__, (x), (y))
-#define MIRAICP_EXCEPTION_WHERE __FILE__, __LINE__
-#if defined(_MSC_VER)
-#define ShouldNotUse(msg) _Pragma("warning(error:4996)") [[deprecated(msg)]] _Pragma("warning(warning:4996)")
-#else // MSVC
-#if defined(__GNUC__)
-#define ShouldNotUse(msg) [[deprecated(msg)]] __attribute__((error(msg)))
-#else // GUNC
-#define ShouldNotUse(msg)
-#endif // ShouldNotUse
-#endif
-#include <string>
-namespace MiraiCP {
-    using QQID = unsigned long long;
-} // namespace MiraiCP
-#endif //MIRAICP_PRO_MIRAIDEFS_H
-namespace MiraiCP {
-    class Friend;  // forward declaration
-    class Group;   // forward declaration
-    class Contact; // forward declaration
-    /// 当前bot账号信息
-    class Bot {
-    private:
-        bool inited = false;
-        std::string _nick;
-        std::string _avatarUrl;
-    public:
-        /// 该botid
-        QQID id;
-    private:
-        void check() {
-            if (!this->inited) {
-                refreshInfo();
-                this->inited = true;
-            }
-        }
-    public:
-        /*!
-         * @brief 刷新bot信息
-         * @param env
-         */
-        void refreshInfo();
-        /// 用id构建机器人
-        explicit Bot(QQID i) : id(i) {}
-        /// 取好友
-        Friend getFriend(QQID i) const;
-        /// 取群聊
-        Group getGroup(QQID groupid) const;
-        /// 昵称
-        std::string nick() {
-            check();
-            return this->_nick;
-        }
-        /// 头像下载链接
-        std::string avatarUrl() {
-            check();
-            return this->_avatarUrl;
-        }
-        /// 取好友列表
-        std::vector<QQID> getFriendList() const;
-        /// 好友列表string形式返回，利于保存
-        std::string FriendListToString();
-        /// 取群列表
-        std::vector<QQID> getGroupList() const;
-        /// 群列表string形式返回，利于保存
-        std::string GroupListToString() const;
-        bool operator==(const Contact &c) const;
-        bool operator==(const Bot &b) const {
-            return this->id == b.id;
-        }
-    };
-} // namespace MiraiCP
-#endif //MIRAICP_PRO_BOT_H
-#ifndef MIRAICP_PRO_CPPPLUGIN_H
-#define MIRAICP_PRO_CPPPLUGIN_H
-#include <utility>
+#include <iostream>
+#include <sstream>
+#ifdef MIRAICP_LIB_LOADER
+#include "LoaderLogger.h"
+#define log(x) LibLoader::logger.info(x)
+#define err(x) LibLoader::logger.error(x)
+#else
 // #include "Logger.h"
 #ifndef MIRAICP_PRO_LOGGER_H
 #define MIRAICP_PRO_LOGGER_H
@@ -608,6 +501,24 @@ namespace MiraiCP {
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_MIRAICODE_H
 // #include "MiraiDefs.h"
+#ifndef MIRAICP_PRO_MIRAIDEFS_H
+#define MIRAICP_PRO_MIRAIDEFS_H
+// #define MiraiCPThrow(x) throw x.append(__FILE__, __LINE__)
+#define ErrorHandle(x, y) ErrorHandle0(__FILE__, __LINE__, (x), (y))
+#if defined(_MSC_VER)
+#define ShouldNotUse(msg) _Pragma("warning(error:4996)") [[deprecated(msg)]] _Pragma("warning(warning:4996)")
+#else // MSVC
+#if defined(__GNUC__)
+#define ShouldNotUse(msg) [[deprecated(msg)]] __attribute__((error(msg)))
+#else // GUNC
+#define ShouldNotUse(msg)
+#endif // ShouldNotUse
+#endif
+#include <string>
+namespace MiraiCP {
+    using QQID = unsigned long long;
+} // namespace MiraiCP
+#endif //MIRAICP_PRO_MIRAIDEFS_H
 #include <functional>
 #include <sstream>
 namespace MiraiCP {
@@ -615,12 +526,12 @@ namespace MiraiCP {
     /*!
     * @class Logger
     * @brief 以MiraiCP的名义发送日志, 日志表现格式是: 2021-06-28 09:37:22 [log level]/MiraiCP: [log content], 为最底层的logger
-    * 发送消息级日志
-    * @code Logger::logger.info(string) @endcode
-    * 发送警告级日志
-    * @code Logger::logger.warning(string) @endcode
-    * 发送错误级日志
-    * @code Logger::logger.error(string) @endcode
+	* 发送消息级日志
+	* @code Logger::logger.info(string) @endcode
+	* 发送警告级日志
+	* @code Logger::logger.warning(string) @endcode
+	* 发送错误级日志
+	* @code Logger::logger.error(string) @endcode
     * @doxygenEg{1011, logger.cpp, 自定义日志handle}
     */
     class Logger_interface {
@@ -717,6 +628,132 @@ namespace MiraiCP {
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_LOGGER_H
+#define log(x) MiraiCP::Logger::logger.info(x)
+#define err(x) MiraiCP::Logger::logger.error(x)
+#endif
+// todo(antares): 不要将上述宏定义放在这里；需要用到宏的地方转移到cpp文件中
+#ifndef MIRAICP_PRO_REDIRECTCOUT_H
+#define MIRAICP_PRO_REDIRECTCOUT_H
+namespace MiraiCP {
+    class OStreamRedirector {
+    public:
+        ~OStreamRedirector() {
+            obj.rdbuf(old);
+        }
+        /**
+         * @brief 重定向 obj 的流
+         * @param obj 需要重定向的流
+         * @param new_buffer 重定向到的新缓冲区
+         */
+        explicit OStreamRedirector(std::ostream &obj, std::streambuf *newBuffer)
+            : old(obj.rdbuf(newBuffer)), obj(obj) {}
+    private:
+        // 被重定向的流
+        std::ostream &obj; // todo(antares): 不要在类成员中使用引用；改为指针
+        // 旧的缓冲区目标
+        std::streambuf *old;
+    };
+    // todo(antares): 整理格式，成员变量在最前，之后构造、析构函数，最后成员函数
+    //  继承了具有虚析构函数的父类，析构函数请显式写为virtual override
+    //  长度较小的成员（bool）放到后面
+    class OString : private std::streambuf, public std::ostream {
+    public:
+        // 输出是否为 info 级别
+        explicit OString(bool info) : std::ostream(this), info(info) {}
+    private:
+        bool info;
+        // 缓冲区
+        std::ostringstream result{};
+        // 加入缓冲区
+        int overflow(std::streambuf::int_type c) override {
+            if (c == EOF)
+                out();
+            else
+                result.put((std::streambuf::char_type) c);
+            return c;
+        }
+        // std::streambuff 的 sync
+        int sync() override {
+            out();
+            return 0;
+        }
+        // 输出缓冲区内容, 相当于 flush
+        void out() {
+            if (info)
+                log(result.str());
+            else
+                err(result.str());
+            result.str("");
+        }
+    };
+} // namespace MiraiCP
+#endif //MIRAICP_PRO_REDIRECTCOUT_H
+#ifndef MIRAICP_PRO_BOT_H
+#define MIRAICP_PRO_BOT_H
+#include <string>
+#include <vector>
+// #include "MiraiDefs.h"
+namespace MiraiCP {
+    class Friend;  // forward declaration
+    class Group;   // forward declaration
+    class Contact; // forward declaration
+    /// 当前bot账号信息
+    class Bot {
+    private:
+        bool inited = false;
+        std::string _nick;
+        std::string _avatarUrl;
+    public:
+        /// 该botid
+        QQID id;
+    private:
+        void check() {
+            if (!this->inited) {
+                refreshInfo();
+                this->inited = true;
+            }
+        }
+    public:
+        /*!
+         * @brief 刷新bot信息
+         * @param env
+         */
+        void refreshInfo();
+        /// 用id构建机器人
+        explicit Bot(QQID i) : id(i) {}
+        /// 取好友
+        Friend getFriend(QQID i) const;
+        /// 取群聊
+        Group getGroup(QQID groupid) const;
+        /// 昵称
+        std::string nick() {
+            check();
+            return this->_nick;
+        }
+        /// 头像下载链接
+        std::string avatarUrl() {
+            check();
+            return this->_avatarUrl;
+        }
+        /// 取好友列表
+        std::vector<QQID> getFriendList() const;
+        /// 好友列表string形式返回，利于保存
+        std::string FriendListToString() const;
+        /// 取群列表
+        std::vector<QQID> getGroupList() const;
+        /// 群列表string形式返回，利于保存
+        std::string GroupListToString() const;
+        bool operator==(const Contact &c) const;
+        bool operator==(const Bot &b) const {
+            return this->id == b.id;
+        }
+    };
+} // namespace MiraiCP
+#endif //MIRAICP_PRO_BOT_H
+#ifndef MIRAICP_PRO_CPPPLUGIN_H
+#define MIRAICP_PRO_CPPPLUGIN_H
+#include <utility>
+// #include "Logger.h"
 // #include "PluginConfig.h"
 namespace MiraiCP {
     /// 插件父类
@@ -792,7 +829,7 @@ namespace MiraiCP {
     /// @brief 总异常CRTP抽象类，不要直接抛出该类，不知道抛出什么的时候请抛出 MiraiCPException。
     /// 该类是用于继承的基类，需要新的异常类型时，继承该类并以子类作为模板参数。
     /// 子类需要实现的方法：
-    /// 1. 构造函数，要求必须委托MiraiCPExceptionCRTP构造，其他成员需要在MiraiCPException构造前完成构造。
+    /// 1. 构造函数，要求必须委托MiraiCPExceptionCRTP构造。
     /// 2. `static std::string exceptionType()` 返回一个字符串表示异常类型。
     /// 继承该类后异常类能正确实现多态。
     /// @interface MiraiCPExceptionCRTP
@@ -801,7 +838,7 @@ namespace MiraiCP {
     class MiraiCPExceptionCRTP : public MiraiCPExceptionBase {
     public:
         /// 委托构造函数
-        explicit MiraiCPExceptionCRTP(std::string _re, string _filename, int _lineNum) : MiraiCPExceptionBase(std::move(_re), std::move(_filename), _lineNum) {
+        explicit MiraiCPExceptionCRTP(string _re, string _filename, int _lineNum) : MiraiCPExceptionBase(std::move(_re), std::move(_filename), _lineNum) {
         }
     public:
         // CRTP类型获取实现
@@ -854,7 +891,7 @@ namespace MiraiCP {
     class MuteException : public MiraiCPExceptionCRTP<MuteException> {
     public:
         /*
-        *    禁言时间超出0s~30d
+        *	 禁言时间超出0s~30d
         */
         MuteException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("禁言时长不在0s~30d中间", std::move(_filename), _lineNum) {}
         static string exceptionType() { return "MuteException"; }
@@ -871,7 +908,7 @@ namespace MiraiCP {
         MemberExceptionType type = OtherType;
         /*
         *   "1" - 找不到群
-        *   "2" - 找不到群成员
+        *	"2" - 找不到群成员
         */
         explicit MemberException(int _type, string _filename, int _lineNum) : MiraiCPExceptionCRTP(
                                                                                       [&]() -> string {
@@ -1088,6 +1125,7 @@ namespace MiraiCP::KtOperation {
 } // namespace MiraiCP::KtOperation
 #endif //MIRAICP_PRO_KTOPERATION_H
 // #include "Logger.h"
+// #include "commonTools.h"
 #include <optional>
 namespace MiraiCP {
     class MessageChain;
@@ -1662,6 +1700,7 @@ namespace MiraiCP {
     };
 } // namespace MiraiCP
 #endif //MIRAICP_PRO_SINGLEMESSAGE_H
+// #include "commonTools.h"
 namespace MiraiCP {
     class MessageSource; // forward declaration
     namespace internal {
@@ -3145,7 +3184,7 @@ namespace MiraiCP {
     /// @brief 总异常CRTP抽象类，不要直接抛出该类，不知道抛出什么的时候请抛出 MiraiCPException。
     /// 该类是用于继承的基类，需要新的异常类型时，继承该类并以子类作为模板参数。
     /// 子类需要实现的方法：
-    /// 1. 构造函数，要求必须委托MiraiCPExceptionCRTP构造，其他成员需要在MiraiCPException构造前完成构造。
+    /// 1. 构造函数，要求必须委托MiraiCPExceptionCRTP构造。
     /// 2. `static std::string exceptionType()` 返回一个字符串表示异常类型。
     /// 继承该类后异常类能正确实现多态。
     /// @interface MiraiCPExceptionCRTP
@@ -3154,7 +3193,7 @@ namespace MiraiCP {
     class MiraiCPExceptionCRTP : public MiraiCPExceptionBase {
     public:
         /// 委托构造函数
-        explicit MiraiCPExceptionCRTP(std::string _re, string _filename, int _lineNum) : MiraiCPExceptionBase(std::move(_re), std::move(_filename), _lineNum) {
+        explicit MiraiCPExceptionCRTP(string _re, string _filename, int _lineNum) : MiraiCPExceptionBase(std::move(_re), std::move(_filename), _lineNum) {
         }
     public:
         // CRTP类型获取实现
@@ -3207,7 +3246,7 @@ namespace MiraiCP {
     class MuteException : public MiraiCPExceptionCRTP<MuteException> {
     public:
         /*
-        *    禁言时间超出0s~30d
+        *	 禁言时间超出0s~30d
         */
         MuteException(string _filename, int _lineNum) : MiraiCPExceptionCRTP("禁言时长不在0s~30d中间", std::move(_filename), _lineNum) {}
         static string exceptionType() { return "MuteException"; }
@@ -3224,7 +3263,7 @@ namespace MiraiCP {
         MemberExceptionType type = OtherType;
         /*
         *   "1" - 找不到群
-        *   "2" - 找不到群成员
+        *	"2" - 找不到群成员
         */
         explicit MemberException(int _type, string _filename, int _lineNum) : MiraiCPExceptionCRTP(
                                                                                       [&]() -> string {
@@ -3807,12 +3846,12 @@ namespace MiraiCP {
     /*!
     * @class Logger
     * @brief 以MiraiCP的名义发送日志, 日志表现格式是: 2021-06-28 09:37:22 [log level]/MiraiCP: [log content], 为最底层的logger
-    * 发送消息级日志
-    * @code Logger::logger.info(string) @endcode
-    * 发送警告级日志
-    * @code Logger::logger.warning(string) @endcode
-    * 发送错误级日志
-    * @code Logger::logger.error(string) @endcode
+	* 发送消息级日志
+	* @code Logger::logger.info(string) @endcode
+	* 发送警告级日志
+	* @code Logger::logger.warning(string) @endcode
+	* 发送错误级日志
+	* @code Logger::logger.error(string) @endcode
     * @doxygenEg{1011, logger.cpp, 自定义日志handle}
     */
     class Logger_interface {
@@ -4021,6 +4060,7 @@ namespace MiraiCP {
 #define MIRAICP_PRO_MESSAGECHAIN_H
 // #include "Exception.h"
 // #include "SingleMessage.h"
+// #include "commonTools.h"
 namespace MiraiCP {
     class MessageSource; // forward declaration
     namespace internal {
@@ -4332,6 +4372,7 @@ namespace MiraiCP {
 //
 #ifndef MIRAICP_PRO_MIRAICPNEWTHREAD_H
 #define MIRAICP_PRO_MIRAICPNEWTHREAD_H
+// #include "Logger.h"
 // #include "Event.h"
 // #include "Exception.h"
 #include <ostream>
@@ -4364,11 +4405,11 @@ namespace MiraiCP {
         MiraiCPNewThread &operator=(const std::thread &) = delete;
         MiraiCPNewThread &operator=(const MiraiCPNewThread &) = delete;
         MiraiCPNewThread &operator=(std::thread &&other) {
-            *static_cast<std::thread *>(this) = std::move(other);
+            static_cast<std::thread &>(*this) = std::move(other);
             return *this;
         }
         MiraiCPNewThread &operator=(MiraiCPNewThread &&other) noexcept {
-            *static_cast<std::thread *>(this) = std::move(*static_cast<std::thread *>(&other));
+            static_cast<std::thread &>(*this) = std::move(static_cast<std::thread &>(other));
             return *this;
         }
     };
@@ -4441,7 +4482,6 @@ namespace MiraiCP {
 #define MIRAICP_PRO_MIRAIDEFS_H
 // #define MiraiCPThrow(x) throw x.append(__FILE__, __LINE__)
 #define ErrorHandle(x, y) ErrorHandle0(__FILE__, __LINE__, (x), (y))
-#define MIRAICP_EXCEPTION_WHERE __FILE__, __LINE__
 #if defined(_MSC_VER)
 #define ShouldNotUse(msg) _Pragma("warning(error:4996)") [[deprecated(msg)]] _Pragma("warning(warning:4996)")
 #else // MSVC
@@ -4973,9 +5013,33 @@ namespace MiraiCP {
 //
 #ifndef MIRAICP_PRO_LOADERAPI_H
 #define MIRAICP_PRO_LOADERAPI_H
-// #include "loaderApiInternal.h"
-namespace LibLoader::LoaderApi {
-} // namespace LibLoader::LoaderApi
+#include <string>
+#include <vector>
+// for plugin usage
+namespace MiraiCP::LoaderApi {
+    /// @brief 返回所有plugin的id
+    std::vector<std::string> showAllPluginId();
+    /// @brief 启用一个已经加载的插件，仅限有管理权限的插件使用，否则没有任何效果
+    /// @param id 插件id
+    void enablePluginById(const std::string &id);
+    /// @brief 禁用一个已经启用的插件，仅限有管理权限的插件使用，否则没有任何效果
+    /// @param id 插件id
+    void disablePluginById(const std::string &);
+    /// @brief 启用全部已加载的插件，仅限有管理权限的插件使用，否则没有任何效果
+    void enableAllPlugins();
+    /// @brief 禁用全部已启用的插件，仅限有管理权限的插件使用，否则没有任何效果
+    void disableAllPlugins();
+    /// @brief 加载新的插件，仅限有管理权限的插件使用，否则没有任何效果
+    /// @param path 插件路径
+    /// @param enableNow 是否立即启用
+    void loadNewPlugin(const std::string &path, bool enableNow);
+    /// @brief 卸载一个插件，仅限有管理权限的插件使用，否则没有任何效果
+    /// @param id 插件id
+    void unloadPluginById(const std::string &id);
+    /// @brief 重载一个插件，仅限有管理权限的插件使用，否则没有任何效果
+    /// @param id 插件id
+    void reloadPluginById(const std::string &id);
+} // namespace MiraiCP::LoaderApi
 #endif //MIRAICP_PRO_LOADERAPI_H
 #ifndef MIRAICP_PRO_UTILS_H
 #define MIRAICP_PRO_UTILS_H
@@ -5015,7 +5079,7 @@ namespace MiraiCP {
 #endif
 extern "C" {
 MIRAICP_EXPORT void FUNC_ENTRANCE(const LibLoader::LoaderApi::interface_funcs &);
-MIRAICP_EXPORT void FUNC_EVENT(const char *content);
+MIRAICP_EXPORT void FUNC_EVENT(const MiraiCP::MiraiCPString &ccontent);
 MIRAICP_EXPORT void FUNC_EXIT();
 MIRAICP_EXPORT const MiraiCP::PluginConfig &PLUGIN_INFO();
 }
