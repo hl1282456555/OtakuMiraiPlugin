@@ -5084,3 +5084,6 @@ MIRAICP_EXPORT void FUNC_EXIT();
 MIRAICP_EXPORT const MiraiCP::PluginConfig &PLUGIN_INFO();
 }
 #endif //MIRAICP_PRO_UTILS_H
+
+#undef log
+#undef err
