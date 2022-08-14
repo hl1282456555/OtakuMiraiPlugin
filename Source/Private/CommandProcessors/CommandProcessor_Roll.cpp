@@ -30,33 +30,37 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 {
 	int randomMin = 0, randomMax = 100;
 
-	std::string helpText = "使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll";
-
 	std::vector<std::string> spaceResult = UGenericStringUtils::SplitIntoArray(Params, " ");
 
 	if (!spaceResult.empty())
 	{
 		std::vector<std::string> result = UGenericStringUtils::SplitIntoArray(spaceResult[0], "-");
 
-		Event->botlogger.info("result: ", result.size());
-
 		if (result.size() != 2)
 		{
-			Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
+			Event->botlogger.info("Params size error.");
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
 			return;
 		}
 
 		for (int Index = 0; Index < result.size(); ++Index)
 		{
+			Event->botlogger.info("result[", Index, "] : ", result[Index]);
 			if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value); }) > 0)
 			{
-				Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
+				Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
 				return;
 			}
 		}
 
-		randomMin = boost::lexical_cast<int>(result.at(0));
-		randomMax = boost::lexical_cast<int>(result.at(1));
+		try {
+			randomMin = boost::lexical_cast<int>(result.at(0));
+			randomMax = boost::lexical_cast<int>(result.at(1));
+		}
+		catch (std::exception& Error)
+		{
+			Event->botlogger.info("Cast error : ", Error.what());
+		}
 	}
 
 	boost::random::uniform_int_distribution<> dist(randomMin, randomMax);
