@@ -30,8 +30,6 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 {
 	int randomMin = 0, randomMax = 100;
 
-	Event->botlogger.info("Processing roll command.");
-
 	std::vector<std::string> spaceResult = UGenericStringUtils::SplitIntoArray(Params, " ");
 
 	if (!spaceResult.empty())
@@ -47,7 +45,6 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 
 		for (int Index = 0; Index < result.size(); ++Index)
 		{
-			Event->botlogger.info("result[", Index, "] : ", result[Index]);
 			if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value); }) > 0)
 			{
 				Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用方法：\r\n1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
