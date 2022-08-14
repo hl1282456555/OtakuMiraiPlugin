@@ -1,14 +1,13 @@
 #include "CommandProcessor_Roll.h"
 
 #include "OtakuEventManager.h"
-
-#include <boost/container/vector.hpp>
-#include <boost/container/string.hpp>
+#include "FunctionLibraries/GenericStringUtils.h"
 
 #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+
+#include <cctype>
 
 REGISTER_COMMAND_PROCESSOR(Roll);
 
@@ -33,22 +32,23 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 
 	std::string helpText = "使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll";
 
-	std::string cleanParams = boost::algorithm::erase_all_copy(Params, " ");
+	std::vector<std::string> spaceResult = UGenericStringUtils::SplitIntoArray(Params, " ");
 
-	boost::container::vector<boost::container::string> result;
-	boost::algorithm::split(result, cleanParams, boost::algorithm::is_any_of("-"));
-
-	if (!result.empty())
+	if (spaceResult.empty())
 	{
-		if (result.size() != 2)
-		{
-			Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
-			return;
-		}
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
+		return;
+	}
 
+	std::vector<std::string> result = UGenericStringUtils::SplitIntoArray(spaceResult[0], "-");
+
+	Event->botlogger.info("result: ", result.size());
+
+	if (result.size() != 2)
+	{
 		for (int Index = 0; Index < result.size(); ++Index)
 		{
-			if (!boost::algorithm::all(result.at(Index), boost::algorithm::is_digit()))
+			if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value);}) > 0)
 			{
 				Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
 				return;
