@@ -30,6 +30,8 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 {
 	int randomMin = 0, randomMax = 100;
 
+	Event->botlogger.info("Processing roll command.");
+
 	std::vector<std::string> spaceResult = UGenericStringUtils::SplitIntoArray(Params, " ");
 
 	if (!spaceResult.empty())
