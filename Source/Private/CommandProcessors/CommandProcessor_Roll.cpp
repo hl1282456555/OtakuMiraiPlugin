@@ -65,6 +65,12 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 		}
 	}
 
+	if (randomMin >= randomMax)
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用方法：\r\n1. 指定范围内随机[min, max]（请勿输入min >= max） ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
+		return;
+	}
+
 	boost::random::uniform_int_distribution<> dist(randomMin, randomMax);
 	boost::random::random_device range;
 
