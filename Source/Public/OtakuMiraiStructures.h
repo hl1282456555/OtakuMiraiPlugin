@@ -15,6 +15,7 @@ enum class EMessageCommandType
 static std::map<std::string, EMessageCommandType> MessageCommandTypeNameMap
 { 
 	{"echo", EMessageCommandType::Echo}, {"ffxiv", EMessageCommandType::FFIXV},
+	{"roll", EMessageCommandType::Roll},
 	{"unsupported", EMessageCommandType::Unsupported}
 };
 
