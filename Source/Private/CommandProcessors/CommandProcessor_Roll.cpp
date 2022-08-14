@@ -42,23 +42,21 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 
 		if (result.size() != 2)
 		{
-			for (int Index = 0; Index < result.size(); ++Index)
-			{
-				if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value); }) > 0)
-				{
-					Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
-					return;
-				}
-			}
-
-			randomMin = boost::lexical_cast<int>(result.at(0));
-			randomMax = boost::lexical_cast<int>(result.at(1));
-		}
-		else
-		{
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
 			return;
 		}
+
+		for (int Index = 0; Index < result.size(); ++Index)
+		{
+			if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value); }) > 0)
+			{
+				Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
+				return;
+			}
+		}
+
+		randomMin = boost::lexical_cast<int>(result.at(0));
+		randomMax = boost::lexical_cast<int>(result.at(1));
 	}
 
 	boost::random::uniform_int_distribution<> dist(randomMin, randomMax);
