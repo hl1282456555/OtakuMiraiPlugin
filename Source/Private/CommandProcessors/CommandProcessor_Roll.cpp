@@ -1,4 +1,4 @@
-#include "CommandProcessor_Roll.h"
+ï»¿#include "CommandProcessor_Roll.h"
 
 #include "OtakuEventManager.h"
 #include "FunctionLibraries/GenericStringUtils.h"
@@ -39,7 +39,7 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 		if (result.size() != 2)
 		{
 			Event->botlogger.info("Params size error.");
-			//Event->group.sendMessage(MiraiCP::PlainText("Ê¹ÓÃ·½·¨£º1. Ö¸¶¨·¶Î§ÄÚËæ»ú[min, max] £º/roll min-max\r\n2. Ä¬ÈÏ·¶Î§Ëæ»ú[0, 100] £º/roll"), Event->message.source.value());
+			Event->group.sendMessage(MiraiCP::PlainText("ä½¿ç”¨æ–¹æ³•ï¼š1. æŒ‡å®šèŒƒå›´å†…éšæœº[min, max] ï¼š/roll min-max\r\n2. é»˜è®¤èŒƒå›´éšæœº[0, 100] ï¼š/roll"), Event->message.source.value());
 			return;
 		}
 
@@ -48,7 +48,7 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 			Event->botlogger.info("result[", Index, "] : ", result[Index]);
 			if (std::count_if(result[Index].cbegin(), result[Index].cend(), [](unsigned char Value) { return !std::isdigit(Value); }) > 0)
 			{
-				//Event->group.quoteAndSendMessage(MiraiCP::PlainText("Ê¹ÓÃ·½·¨£º1. Ö¸¶¨·¶Î§ÄÚËæ»ú[min, max] £º/roll min-max\r\n2. Ä¬ÈÏ·¶Î§Ëæ»ú[0, 100] £º/roll"), Event->message.source.value());
+				Event->group.quoteAndSendMessage(MiraiCP::PlainText("ä½¿ç”¨æ–¹æ³•ï¼š1. æŒ‡å®šèŒƒå›´å†…éšæœº[min, max] ï¼š/roll min-max\r\n2. é»˜è®¤èŒƒå›´éšæœº[0, 100] ï¼š/roll"), Event->message.source.value());
 				return;
 			}
 		}
@@ -68,5 +68,5 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 
 	int ramdonRoll = dist(range);
 
-	Event->group.sendMessage(MiraiCP::PlainText(ramdonRoll));
+	Event->group.quoteAndSendMessage(MiraiCP::PlainText(ramdonRoll), Event->message.source.value());
 }
