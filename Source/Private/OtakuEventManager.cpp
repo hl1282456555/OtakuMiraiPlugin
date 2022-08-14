@@ -156,12 +156,15 @@ bool FOtakuEventManager::ProcessMessageCommandChecked(const std::shared_ptr<Mira
 	{
 		Event->botlogger.info("Not found params from command content : ", CommandParams);
 
-		return true;
+		MessageCommandProcessors[CommandType]->ProcessMessageCommand(Event, "");
+	}
+	else
+	{
+		CommandParams.erase(CommandParams.cbegin(), CommandSplitIt + 1);
+
+		MessageCommandProcessors[CommandType]->ProcessMessageCommand(Event, CommandParams);
 	}
 
-	CommandParams.erase(CommandParams.cbegin(), CommandSplitIt + 1);
-
-	MessageCommandProcessors[CommandType]->ProcessMessageCommand(Event, CommandParams);
 	return true;
 }
 
