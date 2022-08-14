@@ -39,7 +39,7 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 		if (result.size() != 2)
 		{
 			Event->botlogger.info("Params size error.");
-			Event->group.sendMessage(MiraiCP::PlainText("使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用方法：1. 指定范围内随机[min, max] ：/roll min-max\r\n2. 默认范围随机[0, 100] ：/roll"), Event->message.source.value());
 			return;
 		}
 
