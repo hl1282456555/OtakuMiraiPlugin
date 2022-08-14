@@ -8,6 +8,7 @@ enum class EMessageCommandType
 {
 	Echo = 0,
 	FFIXV = 1,
+	Roll = 2,
 	Unsupported
 };
 
