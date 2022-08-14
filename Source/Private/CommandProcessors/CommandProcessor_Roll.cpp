@@ -36,7 +36,7 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 	std::string cleanParams = boost::algorithm::erase_all_copy(Params, " ");
 
 	boost::container::vector<boost::container::string> result;
-	boost::algorithm::split(result, Params, boost::algorithm::is_any_of("-"));
+	boost::algorithm::split(result, cleanParams, boost::algorithm::is_any_of("-"));
 
 	if (!result.empty())
 	{
@@ -57,6 +57,11 @@ void FCommandProcessor_Roll::ProcessMessageCommand(const std::shared_ptr<MiraiCP
 
 		randomMin = boost::lexical_cast<int>(result.at(0));
 		randomMax = boost::lexical_cast<int>(result.at(1));
+	}
+	else
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText(helpText), Event->message.source.value());
+		return;
 	}
 
 	boost::random::uniform_int_distribution<> dist(randomMin, randomMax);
