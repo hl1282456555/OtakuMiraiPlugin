@@ -170,7 +170,7 @@ bool FOtakuEventManager::ProcessMessageCommandChecked(const std::shared_ptr<Mira
 
 EMessageCommandType FOtakuEventManager::ExtractCommand(const std::string& Source)
 {
-	if (Source.empty() || Source.at(0) != '/')
+	if (Source.empty() || Source.at(0) != '/' || Source.size() < 2)
 	{
 		return EMessageCommandType::Unsupported;
 	}
@@ -179,12 +179,10 @@ EMessageCommandType FOtakuEventManager::ExtractCommand(const std::string& Source
 	CommandStr.erase(CommandStr.cbegin());
 	
 	std::string::const_iterator CommandSplitIt = std::find(CommandStr.cbegin(), CommandStr.cend(), ' ');
-	if (CommandSplitIt == CommandStr.cend())
+	if (CommandSplitIt != CommandStr.cend())
 	{
-		return EMessageCommandType::Unsupported;
+		CommandStr.erase(CommandSplitIt, CommandStr.cend());
 	}
-
-	CommandStr.erase(CommandSplitIt, CommandStr.cend());
 
 	auto CommandTypeIt = MessageCommandTypeNameMap.find(CommandStr);
 	if (CommandTypeIt == MessageCommandTypeNameMap.cend())
