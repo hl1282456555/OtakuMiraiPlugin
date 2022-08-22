@@ -1,4 +1,4 @@
-#include "OtakuEventManager.h"
+ï»¿#include "OtakuEventManager.h"
 
 #include <chrono>
 #include <sstream>
@@ -148,7 +148,7 @@ void FOtakuEventManager::ProcessMemberJoinMessage(const std::shared_ptr<MiraiCP:
 		return;
 	}
 
-	MemberJoinEvent->group.sendMessage(MemberJoinEvent->member.at(), MiraiCP::PlainText("»¶Ó­ĞÂÈË¼ÓÈë£¡"));
+	MemberJoinEvent->group.sendMessage(MemberJoinEvent->member.at(), MiraiCP::PlainText("æ¬¢è¿æ–°äººåŠ å…¥ï¼"));
 }
 
 void FOtakuEventManager::ProcessMemberJoinRequestMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event)
@@ -165,7 +165,7 @@ void FOtakuEventManager::ProcessMemberLeaveMessage(const std::shared_ptr<MiraiCP
 	}
 
 	std::stringstream strStream;
-	strStream << "·Ç³£ÒÅº¶£¬ " << MemberLeaveEvent->memberid << " ÓÀÔ¶µÄÀë¿ªÁËÎÒÃÇ£¬×£ËûÒ»Â·Ë³·ç£¬°¢ÃÅ¡£";
+	strStream << "éå¸¸é—æ†¾ï¼Œ " << MemberLeaveEvent->memberid << " æ°¸è¿œçš„ç¦»å¼€äº†æˆ‘ä»¬ï¼Œç¥ä»–ä¸€è·¯é¡ºé£ï¼Œé˜¿é—¨ã€‚";
 
 	MemberLeaveEvent->group.sendMessage(MiraiCP::PlainText(strStream.str().c_str()));
 }

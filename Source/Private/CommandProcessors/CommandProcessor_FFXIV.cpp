@@ -84,7 +84,7 @@ void FCommandProcessor_FFXIV::BindAllCommandProcessors()
 	REGISTER_FFXIV_COMMAND_PROCESSOR(MarketItem);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshDCMap);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshItemIntro);
-	REGISTER_FFXIV_COMMAND_PROCESSOR(DreamCrystal);
+	REGISTER_FFXIV_COMMAND_PROCESSOR(DreamCraystal);
 }
 
 void FCommandProcessor_FFXIV::InitMySQLDependecies()
@@ -430,8 +430,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 #endif
 }
 
-void FCommandProcessor_FFXIV::ProcessCommand_DreamCrystal(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
+void FCommandProcessor_FFXIV::ProcessCommand_DreamCraystal(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
 {
+	Event->botlogger.info("dream_craystal argument - ", Arguments.front());
+
 	if (Arguments.empty() || (Arguments.front().find("推车") == std::string::npos))
 	{
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用示例：\r\n1./ffxiv dream_crystal 推车\r\n2./ffxiv dream_crystal 推车黑魔"), Event->message.source.value());
@@ -471,7 +473,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_DreamCrystal(const std::shared_ptr<
 		int RandomIndex = dist(range);
 		std::string ContentForParse = (*FoundIt)[RandomIndex];
 		std::string ParsedMessage;
-		ParseDreamCrystalMessage(Json, ContentForParse, ParsedMessage);
+		ParseDreamCraystalMessage(Json, ContentForParse, ParsedMessage);
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ParsedMessage.c_str()), Event->message.source.value());
 	}
 	catch (std::exception& Error)
@@ -481,7 +483,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_DreamCrystal(const std::shared_ptr<
 	}
 }
 
-bool FCommandProcessor_FFXIV::ParseDreamCrystalMessage(const nlohmann::json& Json, const std::string& Key, std::string& Out)
+bool FCommandProcessor_FFXIV::ParseDreamCraystalMessage(const nlohmann::json& Json, const std::string& Key, std::string& Out)
 {
 	std::string Result = Key;
 
@@ -518,7 +520,7 @@ bool FCommandProcessor_FFXIV::ParseDreamCrystalMessage(const nlohmann::json& Jso
 		std::string ContentForParse = (*FoundIt)[RandomIndex];
 		std::string ParsedMessage;
 
-		if (!ParseDreamCrystalMessage(Json, ContentForParse, ParsedMessage))
+		if (!ParseDreamCraystalMessage(Json, ContentForParse, ParsedMessage))
 		{
 			Out = ParsedMessage;
 			return false;
