@@ -432,11 +432,9 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 
 void FCommandProcessor_FFXIV::ProcessCommand_DreamCraystal(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
 {
-	Event->botlogger.info("dream_craystal argument - ", Arguments.front());
-
-	if (Arguments.empty() || (Arguments.front().find("推车") == std::string::npos))
+	if (Arguments.size() < 2 || (Arguments[1].find("推车") == std::string::npos))
 	{
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用示例：\r\n1./ffxiv dream_crystal 推车\r\n2./ffxiv dream_crystal 推车黑魔"), Event->message.source.value());
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用示例：\r\n1./ffxiv dream_craystal 推车\r\n2./ffxiv dream_craystal 推车黑魔"), Event->message.source.value());
 		return;
 	}
 
