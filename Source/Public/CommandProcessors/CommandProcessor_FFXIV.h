@@ -9,6 +9,8 @@
 #include <functional>
 #include <thread>
 
+#include "json.hpp"
+
 #include <mysqlx/xdevapi.h>
 
 class FCommandProcessor_FFXIV : public ICommandProcessor
@@ -29,7 +31,9 @@ protected:
 	virtual void ProcessCommand_MarketItem(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
 	virtual void ProcessCommand_RefreshDCMap(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
 	virtual void ProcessCommand_RefreshItemIntro(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
+	virtual void ProcessCommand_DreamCrystal(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments);
 
+	virtual bool ParseDreamCrystalMessage(const nlohmann::json& Json, const std::string& Key, std::string& Out);
 private:
 	std::map<EFFXIVCommandType, std::function<void(const std::shared_ptr<MiraiCP::GroupMessageEvent>&, const std::vector<std::string>&)>> CommandProcessor;
 

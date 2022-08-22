@@ -25,6 +25,7 @@ enum class EFFXIVCommandType
 	MarketItem = 1,
 	RefreshDCMap = 2,
 	RefreshItemIntro = 3,
+	DreamCrystal = 4,
 	Unsupported
 };
 
@@ -34,6 +35,7 @@ static std::map<std::string, EFFXIVCommandType> FFXIVCommandTypeNameMap
 	{"mitem", EFFXIVCommandType::MarketItem},
 	{"refresh_dc", EFFXIVCommandType::RefreshDCMap},
 	{"refresh_item_intro", EFFXIVCommandType::RefreshItemIntro},
+	{"dream_craystal", EFFXIVCommandType::DreamCrystal},
 	{"unsupported", EFFXIVCommandType::Unsupported}
 };
 

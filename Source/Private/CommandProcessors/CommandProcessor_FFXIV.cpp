@@ -3,11 +3,18 @@
 #include "GenericStringUtils.h"
 
 #include <iomanip>
+#include <fstream>
+#include <streambuf>
+#include <regex>
 
 #include "utf8.h"
 #if WITH_HTTP_REQUEST
 #include <cpr/cpr.h>
 #endif
+
+#include <boost/lexical_cast.hpp>
+#include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 #ifdef __linux__
 #define REGISTER_FFXIV_COMMAND_PROCESSOR(CommandType) \
@@ -75,6 +82,7 @@ void FCommandProcessor_FFXIV::BindAllCommandProcessors()
 	REGISTER_FFXIV_COMMAND_PROCESSOR(MarketItem);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshDCMap);
 	REGISTER_FFXIV_COMMAND_PROCESSOR(RefreshItemIntro);
+	REGISTER_FFXIV_COMMAND_PROCESSOR(DreamCrystal);
 }
 
 void FCommandProcessor_FFXIV::InitMySQLDependecies()
@@ -418,4 +426,105 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 #else
 	Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
 #endif
+}
+
+void FCommandProcessor_FFXIV::ProcessCommand_DreamCrystal(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const std::vector<std::string>& Arguments)
+{
+	if (Arguments.empty() || (Arguments.front().find("推车") == Arguments.front().end()))
+	{
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("使用示例：\r\n1./ffxiv dream_crystal 推车\r\n2./ffxiv dream_crystal 推车黑魔"), Event->message.source.value());
+		return;
+	}
+
+	std::ifstream ConfigFile("DreamCrystalConfig.json");
+	if (!ConfigFile.is_open())
+	{
+		Event->botlogger.warning("加载DreamCrystalConfig.json失败。");
+		return;
+	}
+
+	std::string ConfigContent((std::istreambuf_iterator<char>(ConfigFile)), std::istreambuf_iterator<char>());
+	if (ConfigContent.empty())
+	{
+		Event->botlogger.warning("读取DreamCrystalConfig.json失败。");
+		return;
+	}
+
+	try
+	{
+		nlohmann::json Json = nlohmann::json::parse(ConfigContent);
+
+		auto FoundIt = Json.find(Arguments.front());
+		if (FoundIt == Json.end() || !FoundIt->is_array())
+		{
+			std::stringstream ResponseStream("尚未配置 ");
+			ResponseStream << Arguments.front() << " 数据，请联系管理员进行添加。";
+			Event->group.quoteAndSendMessage(MiraiCP::PlainText(ResponseStream.str().c_str()), Event->message.source.value());
+			return;
+		}
+
+		boost::random::uniform_int_distribution<> dist(0, FoundIt->size() - 1);
+		boost::random::random_device range;
+
+		int RandomIndex = dist(range);
+		std::string ContentForParse = (*FoundIt)[RandomIndex];
+		std::string ParsedMessage;
+		ParseDreamCrystalMessage(Json, ContentForParse, ParsedMessage);
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ParsedMessage.c_str()), Event->message.source.value());
+	}
+	catch (std::exception& Error)
+	{
+		Event->botlogger.warning("解析DreamCrystalConfig.json失败。");
+		return;
+	}
+}
+
+bool FCommandProcessor_FFXIV::ParseDreamCrystalMessage(const nlohmann::json& Json, const std::string& Key, std::string& Out)
+{
+	std::string Result = Key;
+
+	std::regex Pattern("\\{[\\S\\s][^\\}]+\\}");
+	auto MatchIt = std::sregex_iterator(Result.cbegin(), Result.cend(), Pattern);
+	auto MatchEnd = std::sregex_iterator();
+
+	if (MatchIt == MatchEnd)
+	{
+		Out = Result;
+		return true;
+	}
+
+	for (std::sregex_iterator It = MatchIt; It != MatchEnd; ++It)
+	{
+		std::string MatchedContent = It->str();
+		std::remove(MatchedContent.begin(), MatchedContent.end(), '{');
+		std::remove(MatchedContent.begin(), MatchedContent.end(), '%');
+		std::remove(MatchedContent.begin(), MatchedContent.end(), '}');
+
+		auto FoundIt = Json.find(MatchedContent);
+		if (FoundIt == Json.end() || !FoundIt->is_array())
+		{
+			std::stringstream ResponseStream("尚未配置 ");
+			ResponseStream << Arguments.front() << " 数据，请联系管理员进行添加。";
+			Out = ResponseStream.str();
+			return false;
+		}
+
+		boost::random::uniform_int_distribution<> dist(0, FoundIt->size() - 1);
+		boost::random::random_device range;
+
+		int RandomIndex = dist(range);
+		std::string ContentForParse = (*FoundIt)[RandomIndex];
+		std::string ParsedMessage;
+
+		if (!ParseDreamCrystalMessage(Json, ContentForParse, ParsedMessage))
+		{
+			Out = ParsedMessage;
+			return false;
+		}
+
+		std::replace(Result.begin(), Result.end(), It->str(), ParsedMessage);
+	}
+
+	Out = Result;
+	return true;
 }
