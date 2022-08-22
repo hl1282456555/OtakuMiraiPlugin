@@ -39,6 +39,9 @@ protected:
 	virtual std::shared_ptr<MiraiCP::MiraiCPEvent> DequeueEvent();
 
 	virtual void ProcessGroupMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event);
+	virtual void ProcessMemberJoinMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event);
+	virtual void ProcessMemberJoinRequestMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event);
+	virtual void ProcessMemberLeaveMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event);
 
 	virtual bool ProcessMessageCommandChecked(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const MiraiCP::internal::Message& Message);
 	virtual EMessageCommandType ExtractCommand(const std::string& Source);

@@ -36,3 +36,6 @@ cmake*/
 *.app
 cmake-build-debug
 .idea
+
+.vs/
+out/
