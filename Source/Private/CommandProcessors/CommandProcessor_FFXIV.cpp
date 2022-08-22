@@ -505,8 +505,8 @@ bool FCommandProcessor_FFXIV::ParseDreamCraystalMessage(const nlohmann::json& Js
 		auto FoundIt = Json.find(MatchedContent);
 		if (FoundIt == Json.end() || !FoundIt->is_array())
 		{
-			std::stringstream ResponseStream("尚未配置 ");
-			ResponseStream << MatchedContent << " 数据，请联系管理员进行添加。";
+			std::stringstream ResponseStream;
+			ResponseStream << "尚未配置 " << MatchedContent << " 数据，请联系管理员进行添加。";
 			Out = ResponseStream.str();
 			return false;
 		}
