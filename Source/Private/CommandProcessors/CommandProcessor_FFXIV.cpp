@@ -456,11 +456,11 @@ void FCommandProcessor_FFXIV::ProcessCommand_DreamCraystal(const std::shared_ptr
 	{
 		nlohmann::json Json = nlohmann::json::parse(ConfigContent);
 
-		auto FoundIt = Json.find(Arguments.front());
+		auto FoundIt = Json.find(Arguments[1]);
 		if (FoundIt == Json.end() || !FoundIt->is_array())
 		{
-			std::stringstream ResponseStream("尚未配置 ");
-			ResponseStream << Arguments.front() << " 数据，请联系管理员进行添加。";
+			std::stringstream ResponseStream;
+			ResponseStream << "尚未配置 "  << Arguments[1] << " 数据，请联系管理员进行添加。";
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText(ResponseStream.str().c_str()), Event->message.source.value());
 			return;
 		}
