@@ -12,6 +12,8 @@
 #include <cpr/cpr.h>
 #endif
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -504,7 +506,7 @@ bool FCommandProcessor_FFXIV::ParseDreamCrystalMessage(const nlohmann::json& Jso
 		if (FoundIt == Json.end() || !FoundIt->is_array())
 		{
 			std::stringstream ResponseStream("尚未配置 ");
-			ResponseStream << Arguments.front() << " 数据，请联系管理员进行添加。";
+			ResponseStream << MatchedContent << " 数据，请联系管理员进行添加。";
 			Out = ResponseStream.str();
 			return false;
 		}
@@ -522,7 +524,7 @@ bool FCommandProcessor_FFXIV::ParseDreamCrystalMessage(const nlohmann::json& Jso
 			return false;
 		}
 
-		std::replace(Result.begin(), Result.end(), It->str(), ParsedMessage);
+		boost::replace_all(Result, It->str(), ParsedMessage);
 	}
 
 	Out = Result;
