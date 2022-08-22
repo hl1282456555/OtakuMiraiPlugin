@@ -15,7 +15,7 @@ set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME 	OFF)
 set(Boost_USE_STATIC_LIBS 		OFF)
 
-find_package(Boost 1.79.0 REQUIRED)
+find_package(Boost 1.79.0 REQUIRED COMPONENTS random)
 
 file(GLOB_RECURSE SOURCE_FILES ./Source/*.h ./Source/*.hpp ./Source/*.c ./Source/*.cpp)
 file(GLOB_RECURSE THIRDPARTY_FILES ./ThirdParty/*.h ./ThirdParty/*.hpp ./ThirdParty/*.c ./ThirdParty/*.cpp)
