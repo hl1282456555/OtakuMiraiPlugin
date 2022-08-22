@@ -158,16 +158,16 @@ void FOtakuEventManager::ProcessMemberJoinRequestMessage(const std::shared_ptr<M
 
 void FOtakuEventManager::ProcessMemberLeaveMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event)
 {
-	std::shared_ptr<MiraiCP::MemberLeaveEvent> MemberLeaveEvent = std::dynamic_pointer_cast<MiraiCP::MemberLeaveEvent>(Event);
-	if (!MemberLeaveEvent)
-	{
-		return;
-	}
+	//std::shared_ptr<MiraiCP::MemberLeaveEvent> MemberLeaveEvent = std::dynamic_pointer_cast<MiraiCP::MemberLeaveEvent>(Event);
+	//if (!MemberLeaveEvent)
+	//{
+	//	return;
+	//}
 
-	std::stringstream strStream;
-	strStream << "非常遗憾， " << MemberLeaveEvent->memberid << " 永远的离开了我们，祝他一路顺风，阿门。";
+	//std::stringstream strStream;
+	//strStream << "非常遗憾， " << MemberLeaveEvent->memberid << " 永远的离开了我们，祝他一路顺风，阿门。";
 
-	MemberLeaveEvent->group.sendMessage(MiraiCP::PlainText(strStream.str().c_str()));
+	//MemberLeaveEvent->group.sendMessage(MiraiCP::PlainText(strStream.str().c_str()));
 }
 
 bool FOtakuEventManager::ProcessMessageCommandChecked(const std::shared_ptr<MiraiCP::GroupMessageEvent>& Event, const MiraiCP::internal::Message& Message)
