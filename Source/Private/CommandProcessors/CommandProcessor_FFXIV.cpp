@@ -472,7 +472,11 @@ void FCommandProcessor_FFXIV::ProcessCommand_DreamCraystal(const std::shared_ptr
 		std::string ContentForParse = (*FoundIt)[RandomIndex];
 		std::string ParsedMessage;
 		ParseDreamCraystalMessage(Json, ContentForParse, ParsedMessage);
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ParsedMessage.c_str()), Event->message.source.value());
+
+		std::string ReplyMessage("嗯嗯？");
+		ReplyMessage.append(ParsedMessage);
+
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ReplyMessage.c_str()), Event->message.source.value());
 	}
 	catch (std::exception& Error)
 	{
