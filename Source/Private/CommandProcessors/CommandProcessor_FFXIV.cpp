@@ -498,9 +498,12 @@ bool FCommandProcessor_FFXIV::ParseDreamCraystalMessage(const nlohmann::json& Js
 	for (std::sregex_iterator It = MatchIt; It != MatchEnd; ++It)
 	{
 		std::string MatchedContent = It->str();
-		std::remove(MatchedContent.begin(), MatchedContent.end(), '{');
-		std::remove(MatchedContent.begin(), MatchedContent.end(), '%');
-		std::remove(MatchedContent.begin(), MatchedContent.end(), '}');
+		MatchedContent.erase(MatchedContent.begin());
+		if (MatchedContent.at(0) == '%')
+		{
+			MatchedContent.erase(MatchedContent.begin());
+		}
+		MatchedContent.erase(MatchedContent.end() - 1);
 
 		auto FoundIt = Json.find(MatchedContent);
 		if (FoundIt == Json.end() || !FoundIt->is_array())
