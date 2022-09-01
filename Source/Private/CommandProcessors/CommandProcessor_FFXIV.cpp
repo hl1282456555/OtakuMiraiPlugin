@@ -251,7 +251,7 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 	}
 	catch (std::exception& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
-		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what());
+		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what());
 	}
 
 #else
