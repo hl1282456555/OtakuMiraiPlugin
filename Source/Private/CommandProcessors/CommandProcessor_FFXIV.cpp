@@ -8,6 +8,8 @@
 #include <regex>
 #include <exception>
 
+#include <jdbc/cppconn/exception.h>
+
 #include "utf8.h"
 #if WITH_HTTP_REQUEST
 #include <cpr/cpr.h>
@@ -252,6 +254,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 	catch (std::exception& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what());
+	}
+	catch (sql::SQLException& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
 	}
 
 #else
