@@ -32,13 +32,7 @@ CommandProcessor[EFFXIVCommandType::##CommandType] = std::bind(&FCommandProcesso
 REGISTER_COMMAND_PROCESSOR(FFXIV);
 
 FCommandProcessor_FFXIV::FCommandProcessor_FFXIV()
-	: MysqlSession(
-		mysqlx::SessionOption::HOST, "localhost",
-		mysqlx::SessionOption::PORT, 33060,
-		mysqlx::SessionOption::USER, "luo",
-		mysqlx::SessionOption::PWD, "luoyu@110030",
-		mysqlx::SessionOption::DB, "ffxiv_data_schema"
-	)
+	: Settings("localhost", 33060, "luo", "luoyu@110030", "ffxiv_data_schema")
 {
 	BindAllCommandProcessors();
 	InitMySQLDependecies();
@@ -147,6 +141,8 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 			Event->group.quoteAndSendMessage(MiraiCP::PlainText("请按照正确的格式查询【/mitem 大区名称 物品名称/物品名称HQ】！"), Event->message.source.value());
 			return;
 		}
+
+		mysqlx::Session MysqlSession(Settings);
 
 		mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
 		if (!FFXIVSchema.existsInDatabase())
@@ -269,6 +265,8 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<
 {
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
+		mysqlx::Session MysqlSession(Settings);
+
 		mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
 		if (!FFXIVSchema.existsInDatabase())
 		{
@@ -335,6 +333,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what());
 	}
+	catch (sql::SQLException& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
+	}
 
 #else
 	Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
@@ -345,6 +347,8 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 {
 #if WITH_HTTP_REQUEST && WITH_OPENSSL
 	try {
+		mysqlx::Session MysqlSession(Settings);
+
 		mysqlx::Schema FFXIVSchema = MysqlSession.getSchema("ffxiv_data_schema");
 		if (!FFXIVSchema.existsInDatabase())
 		{
@@ -433,6 +437,10 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 	catch (std::exception& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_RefreshItemIntro error : ", Error.what());
+	}
+	catch (sql::SQLException& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_RefreshItemIntro error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
 	}
 
 #else

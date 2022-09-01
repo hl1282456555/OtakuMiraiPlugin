@@ -37,8 +37,7 @@ protected:
 private:
 	std::map<EFFXIVCommandType, std::function<void(const std::shared_ptr<MiraiCP::GroupMessageEvent>&, const std::vector<std::string>&)>> CommandProcessor;
 
-	// MySQL
-	mysqlx::Session MysqlSession;
+	mysqlx::SessionSettings Settings;
 };
 
 #endif
