@@ -247,13 +247,13 @@ void FCommandProcessor_FFXIV::ProcessCommand_MarketItem(const std::shared_ptr<Mi
 		ReplyMessage += "\r\n最后更新时间为 : " + UGenericStringUtils::ConvertTimestamp(LastReviewTime);
 		Event->group.sendMessage(MiraiCP::PlainText(ReplyMessage));
 	}
-	catch (std::exception& Error) {
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
-		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what());
-	}
 	catch (sql::SQLException& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
+	}
+	catch (std::exception& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_MarketItem error : ", Error.what());
 	}
 
 #else
@@ -329,13 +329,13 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshDCMap(const std::shared_ptr<
 
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("大区服务器映射表成功刷新！"), Event->message.source.value());
 	}
-	catch (std::exception& Error) {
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
-		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what());
-	}
 	catch (sql::SQLException& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
+	}
+	catch (std::exception& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_RefreshDCMap error : ", Error.what());
 	}
 
 #else
@@ -434,13 +434,13 @@ void FCommandProcessor_FFXIV::ProcessCommand_RefreshItemIntro(const std::shared_
 
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText(ReplyMessage), Event->message.source.value());
 	}
-	catch (std::exception& Error) {
-		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
-		Event->botlogger.error("ProcessCommand_RefreshItemIntro error : ", Error.what());
-	}
 	catch (sql::SQLException& Error) {
 		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法提供您需要的数据！"), Event->message.source.value());
 		Event->botlogger.error("ProcessCommand_RefreshItemIntro error : ", Error.what(), ", code : ", Error.getErrorCode(), ", sql state : ", Error.getSQLStateCStr());
+	}
+	catch (std::exception& Error) {
+		Event->group.quoteAndSendMessage(MiraiCP::PlainText("非常抱歉，查询接口失败了，无法刷新映射表！"), Event->message.source.value());
+		Event->botlogger.error("ProcessCommand_RefreshItemIntro error : ", Error.what());
 	}
 
 #else
