@@ -9,7 +9,7 @@
 #include <functional>
 #include <thread>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <mysqlx/xdevapi.h>
 

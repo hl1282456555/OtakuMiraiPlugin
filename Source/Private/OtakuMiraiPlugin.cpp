@@ -31,7 +31,6 @@ public:
   }
 };
 
-void MiraiCP::enrollPlugin() 
-{
-  MiraiCP::enrollPlugin(new OtakuMiraiPlugin);
+void MiraiCP::enrollPlugin() {
+	MiraiCP::enrollPlugin<OtakuMiraiPlugin>();
 }
