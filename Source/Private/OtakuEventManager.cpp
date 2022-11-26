@@ -148,7 +148,7 @@ void FOtakuEventManager::ProcessMemberJoinMessage(const std::shared_ptr<MiraiCP:
 		return;
 	}
 
-	MemberJoinEvent->group.sendMessage(MemberJoinEvent->member.at(), MiraiCP::PlainText("欢迎新人加入！"));
+	MemberJoinEvent->group.sendMessage(MiraiCP::PlainText("欢迎 "), MemberJoinEvent->member.at(), MiraiCP::PlainText(" 来到部队群！进群请优先改群昵称先混眼熟哦。\r\n\r\n新人推荐优先了解以下内容：\r\n1、招待码↓（师徒结对，详询群主）\r\nhttps://actff1.web.sdo.com/20190315Zhaodai/index.html#/index\r\n2、新手入门攻略站↓（自强芽推荐）\r\nhttps://ff14.org/?utm_source=ffcafe&utm_medium=website&utm_campaign=navbar\r\n3、游戏中文维基：↓\r\nhttps://ff14.huijiwiki.com/wiki/%E9%A6%96%E9%A1%B5\r\n4、禁止【买金】【代练】【代打】，FF14游戏环境并不包容此类行为。\r\n5、下本请做好职业本职工作，及时更新装备！打本中遇到什么问题，推荐出本后群内求助，请不要在副本争吵浪费时间。\r\n6、支持讨论辩论，但请勿攻击他人，互相尊重。禁止键政内容。\r\n\r\n希望小伙伴顺利度过游戏前期，游戏愉快哦~"));
 }
 
 void FOtakuEventManager::ProcessMemberJoinRequestMessage(const std::shared_ptr<MiraiCP::MiraiCPEvent>& Event)
